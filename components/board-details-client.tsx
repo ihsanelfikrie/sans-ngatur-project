@@ -134,15 +134,30 @@ export default function BoardDetailsClient({
     }
   }
 
+  const [isPendingTransition, startTransition] = useState(false)
+  const [localTasks, setLocalTasks] = useState<Task[]>(initialTasks)
+
+  // Keep local tasks in sync with initialTasks when server updates
+  if (initialTasks !== localTasks && JSON.stringify(initialTasks) !== JSON.stringify(localTasks)) {
+    setLocalTasks(initialTasks)
+  }
+
   async function handleMoveTask(taskId: string, targetStatusId: string | null) {
     const siblingTasks = targetStatusId
-      ? initialTasks.filter((t) => t.status_id === targetStatusId)
-      : initialTasks.filter((t) => !t.status_id)
+      ? localTasks.filter((t) => t.status_id === targetStatusId)
+      : localTasks.filter((t) => !t.status_id)
 
     const newPosition =
       siblingTasks.length > 0
         ? Math.max(...siblingTasks.map((t) => t.position)) + 1
         : 1
+
+    // Optimistic UI update (0ms instant response)
+    setLocalTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId ? { ...t, status_id: targetStatusId, position: newPosition } : t
+      )
+    )
 
     await moveTask(board.id, taskId, targetStatusId, newPosition)
     router.refresh()
@@ -388,7 +403,7 @@ export default function BoardDetailsClient({
       <div className="flex relative overflow-hidden">
         <main className="flex-1 p-4 md:p-6 overflow-y-auto">
           <MultiViewWorkspace
-            tasks={initialTasks}
+            tasks={localTasks}
             statuses={statuses}
             taskTypes={taskTypes}
             members={members}

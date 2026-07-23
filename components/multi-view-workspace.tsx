@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useCallback, memo } from 'react'
 import {
   DndContext,
   useSensor,
@@ -104,7 +104,7 @@ function getH5Status(deadlineStr: string | null) {
 }
 
 // ─────────────────────────────────────────
-// Component: MultiViewWorkspace (Simple & Mobile-Optimized)
+// Component: MultiViewWorkspace (Highly Optimized)
 // ─────────────────────────────────────────
 export default function MultiViewWorkspace({
   tasks,
@@ -143,7 +143,6 @@ export default function MultiViewWorkspace({
     statuses[0]?.id || 'unassigned'
   )
 
-  // Container ref for smooth scrolling
   const kanbanContainerRef = useRef<HTMLDivElement>(null)
 
   // DND State
@@ -157,13 +156,13 @@ export default function MultiViewWorkspace({
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 150, // 150ms hold gesture
+        delay: 150,
         tolerance: 5,
       },
     })
   )
 
-  // Filter tasks
+  // Filter tasks with memoization
   const filteredTasks = useMemo(() => {
     return tasks.filter((t) => {
       if (searchQuery.trim()) {
@@ -205,12 +204,12 @@ export default function MultiViewWorkspace({
     })
   }, [sortedTasksByDeadline])
 
-  function handleDragStart(event: DragStartEvent) {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     const task = tasks.find((t) => t.id === event.active.id)
     if (task) setActiveDragTask(task)
-  }
+  }, [tasks])
 
-  function handleDragEnd(event: DragEndEvent) {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event
     setActiveDragTask(null)
     if (!over) return
@@ -222,22 +221,21 @@ export default function MultiViewWorkspace({
     if (task && task.status_id !== targetStatusId) {
       onMoveTask(taskId, targetStatusId)
     }
-  }
+  }, [tasks, onMoveTask])
 
-  // Smooth scroll to a column on mobile status tab tap
-  function scrollToColumn(colId: string) {
+  const scrollToColumn = useCallback((colId: string) => {
     setActiveMobileColumnId(colId)
     const el = document.getElementById(`kanban-col-${colId}`)
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
     }
-  }
+  }, [])
 
   return (
     <div className="space-y-4 w-full max-w-full">
-      {/* ── 🚨 H-5 DEADLINE ALERT WIDGET (Simple & Clean) ── */}
+      {/* ── 🚨 H-5 DEADLINE ALERT WIDGET ── */}
       {urgentTasks.length > 0 && (
-        <div className="bg-var-card border border-amber-500/40 rounded-xl p-3.5 sm:p-4">
+        <div className="bg-var-card border border-amber-500/40 rounded-xl p-3.5 sm:p-4 content-visibility-auto">
           <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-var-border">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-400 animate-pulse flex-shrink-0" />
@@ -301,7 +299,6 @@ export default function MultiViewWorkspace({
                         </span>
                       )}
                     </div>
-                    {/* FULL NAME OF ASSIGNEE */}
                     {member && (
                       <span className="font-bold text-indigo-400 flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: member.color }} />
@@ -316,7 +313,7 @@ export default function MultiViewWorkspace({
         </div>
       )}
 
-      {/* ── SIMPLE CONTROLS & FILTER BAR ── */}
+      {/* ── CONTROLS & FILTER BAR ── */}
       <div className="bg-var-card border border-var-border p-3.5 rounded-xl space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           {/* View Switcher Tabs */}
@@ -454,7 +451,7 @@ export default function MultiViewWorkspace({
 
       {/* ── VIEWS RENDER ── */}
 
-      {/* 1. KANBAN VIEW (With Mobile Status Tab Quick Switching & Hold-Drag) */}
+      {/* 1. KANBAN VIEW */}
       {activeView === 'kanban' && (
         <div className="space-y-3">
           {/* Mobile Status Column Quick Switcher Pills */}
@@ -517,7 +514,7 @@ export default function MultiViewWorkspace({
 
             <DragOverlay>
               {activeDragTask ? (
-                <div className="bg-var-card border border-indigo-500 rounded-lg p-3 opacity-90 shadow-2xl scale-105">
+                <div className="bg-var-card border border-indigo-500 rounded-lg p-3 opacity-90 shadow-2xl scale-105 gpu-accelerated">
                   <span className="text-xs font-bold text-var-primary break-words">{activeDragTask.title}</span>
                 </div>
               ) : null}
@@ -526,9 +523,9 @@ export default function MultiViewWorkspace({
         </div>
       )}
 
-      {/* 2. LIST VIEW (Sorted by closest deadline, FULL ASSIGNEE NAMES) */}
+      {/* 2. LIST VIEW */}
       {activeView === 'list' && (
-        <div className="bg-var-card border border-var-border rounded-xl p-3.5 sm:p-5 space-y-3">
+        <div className="bg-var-card border border-var-border rounded-xl p-3.5 sm:p-5 space-y-3 content-visibility-auto">
           <div className="flex items-center justify-between pb-3 border-b border-var-border text-xs font-bold text-var-secondary">
             <span>Daftar Tugas (Urut Deadline Terdekat)</span>
             <span>Total: {sortedTasksByDeadline.length}</span>
@@ -549,7 +546,7 @@ export default function MultiViewWorkspace({
                   <div
                     key={task.id}
                     onClick={() => onTaskClick(task)}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3.5 bg-var-card-subtle hover:border-gray-600 border border-var-border rounded-lg transition-colors cursor-pointer"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3.5 bg-var-card-subtle hover:border-gray-600 border border-var-border rounded-lg transition-colors cursor-pointer content-visibility-auto"
                   >
                     <div className="flex items-start gap-2.5 flex-1 min-w-0">
                       <span
@@ -585,12 +582,10 @@ export default function MultiViewWorkspace({
                           )}
                         </div>
 
-                        {/* Full Title */}
                         <h4 className="text-xs sm:text-sm font-bold text-var-primary break-words leading-snug">
                           {task.title}
                         </h4>
 
-                        {/* Full Description */}
                         {task.description && (
                           <p className="text-[11px] text-var-secondary break-words whitespace-pre-wrap leading-relaxed">
                             {task.description}
@@ -627,7 +622,6 @@ export default function MultiViewWorkspace({
                         <span className="text-var-secondary text-[10px]">Tanpa Deadline</span>
                       )}
 
-                      {/* FULL ASSIGNEE NAME */}
                       {member ? (
                         <div
                           className="flex items-center gap-1.5 px-2 py-1 rounded border text-[11px] font-bold"
@@ -665,9 +659,9 @@ export default function MultiViewWorkspace({
         />
       )}
 
-      {/* 4. TABLE VIEW (FULL ASSIGNEE NAMES) */}
+      {/* 4. TABLE VIEW */}
       {activeView === 'table' && (
-        <div className="bg-var-card border border-var-border rounded-xl overflow-x-auto">
+        <div className="bg-var-card border border-var-border rounded-xl overflow-x-auto content-visibility-auto">
           <table className="w-full text-left text-xs border-collapse min-w-[600px]">
             <thead>
               <tr className="bg-var-card-subtle border-b border-var-border text-var-secondary font-bold uppercase text-[10px] tracking-wider">
@@ -721,7 +715,6 @@ export default function MultiViewWorkspace({
                         <span className="text-var-secondary">-</span>
                       )}
                     </td>
-                    {/* FULL ASSIGNEE NAME IN TABLE */}
                     <td className="p-3 font-bold">
                       {member ? (
                         <span className="text-indigo-400 flex items-center gap-1.5">
@@ -763,9 +756,9 @@ export default function MultiViewWorkspace({
 }
 
 // ─────────────────────────────────────────
-// Droppable Column (Snap-X on Mobile)
+// Droppable Column (Memoized)
 // ─────────────────────────────────────────
-function DroppableColumn({
+const DroppableColumn = memo(function DroppableColumn({
   id,
   title,
   color,
@@ -839,12 +832,12 @@ function DroppableColumn({
       </div>
     </div>
   )
-}
+})
 
 // ─────────────────────────────────────────
-// Draggable Task Card (Full Assignee Name & Full Text)
+// Draggable Task Card (Memoized + GPU accelerated)
 // ─────────────────────────────────────────
-function DraggableTaskCard({
+const DraggableTaskCard = memo(function DraggableTaskCard({
   task,
   members,
   taskTypes,
@@ -883,7 +876,7 @@ function DraggableTaskCard({
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className={`group relative bg-var-card-subtle border border-var-border hover:border-gray-600 rounded-lg p-3 flex flex-col gap-2 transition-all cursor-pointer touch-manipulation ${
+      className={`group relative bg-var-card-subtle border border-var-border hover:border-gray-600 rounded-lg p-3 flex flex-col gap-2 transition-colors cursor-pointer touch-manipulation gpu-accelerated content-visibility-auto ${
         isDragging ? 'opacity-30 border-indigo-500' : ''
       }`}
     >
@@ -911,12 +904,10 @@ function DraggableTaskCard({
         )}
       </div>
 
-      {/* FULL TITLE */}
       <h4 className="text-xs font-bold text-var-primary group-hover:text-indigo-400 transition-colors break-words leading-snug">
         {task.title}
       </h4>
 
-      {/* FULL DESCRIPTION */}
       {task.description && (
         <p className="text-[11px] text-var-secondary break-words leading-relaxed whitespace-pre-wrap">
           {task.description}
@@ -954,7 +945,6 @@ function DraggableTaskCard({
           )}
         </div>
 
-        {/* FULL ASSIGNEE NAME ON CARD */}
         {member ? (
           <div
             className="flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-bold"
@@ -975,12 +965,12 @@ function DraggableTaskCard({
       </div>
     </div>
   )
-}
+})
 
 // ─────────────────────────────────────────
-// Subcomponent: CalendarGrid (Responsive)
+// Subcomponent: CalendarGrid (Memoized)
 // ─────────────────────────────────────────
-function CalendarGrid({
+const CalendarGrid = memo(function CalendarGrid({
   tasks,
   selectedMonth,
   onChangeMonth,
@@ -1018,7 +1008,7 @@ function CalendarGrid({
   ]
 
   return (
-    <div className="bg-var-card border border-var-border rounded-xl p-3 sm:p-4 space-y-3">
+    <div className="bg-var-card border border-var-border rounded-xl p-3 sm:p-4 space-y-3 content-visibility-auto">
       <div className="flex items-center justify-between">
         <h3 className="text-xs sm:text-sm font-bold text-var-primary flex items-center gap-1.5">
           <CalendarIcon className="w-4 h-4 text-indigo-400" />
@@ -1110,4 +1100,4 @@ function CalendarGrid({
       </div>
     </div>
   )
-}
+})

@@ -26,6 +26,14 @@ body {
   color: var(--text-primary);
   font-family: var(--font-sans);
   transition: background-color 0.2s ease, color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hardware accelerated smooth scrolling & touch performance */
+* {
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Eliminate shadows and glowing effects from inputs and focus rings globally (Flat UI) */
@@ -45,6 +53,26 @@ input, select, textarea {
 
 .backdrop-blur-sm, .backdrop-blur-md, .backdrop-blur-lg, .backdrop-blur {
   backdrop-filter: none !important;
+}
+
+/* Performance GPU Utility Classes */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 80px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Utility classes for Theme variables */
