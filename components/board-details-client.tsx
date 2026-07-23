@@ -22,7 +22,6 @@ import {
   Users,
   Layers,
   ArrowLeft,
-  Clock,
   Upload,
   Link as LinkIcon,
   AlertCircle,
@@ -329,23 +328,14 @@ export default function BoardDetailsClient({
     }
   }
 
-  function getInitials(name: string): string {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2)
-  }
-
   return (
-    <div className="min-h-screen bg-[#121212] text-gray-200">
+    <div className="min-h-screen bg-var-primary text-var-primary transition-colors">
       {/* ── Board Header ── */}
-      <header className="px-4 md:px-6 py-4 border-b border-gray-800 bg-[#181818] sticky top-0 z-40 flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <header className="px-4 md:px-6 py-4 border-b border-var-border bg-var-card sticky top-0 z-40 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link
             href="/boards"
-            className="p-2 hover:bg-[#252525] border border-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors cursor-pointer"
+            className="p-2 hover:bg-var-card-subtle border border-var-border rounded-lg text-var-secondary hover:text-var-primary transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
@@ -355,10 +345,10 @@ export default function BoardDetailsClient({
                 className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                 style={{ backgroundColor: board.color }}
               />
-              <h1 className="text-base font-bold text-white leading-tight">{board.name}</h1>
+              <h1 className="text-base font-bold text-var-primary leading-tight">{board.name}</h1>
             </div>
             {board.description && (
-              <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-1">{board.description}</p>
+              <p className="text-[11px] text-var-secondary mt-0.5 line-clamp-1">{board.description}</p>
             )}
           </div>
         </div>
@@ -371,7 +361,7 @@ export default function BoardDetailsClient({
             className={`flex items-center gap-1.5 px-3 py-2 border rounded-lg text-xs font-bold transition-all cursor-pointer ${
               isSettingsOpen
                 ? 'bg-indigo-600 border-indigo-700 text-white'
-                : 'bg-[#202020] border-gray-800 hover:bg-[#252525] hover:text-white text-gray-300'
+                : 'bg-var-card-subtle border-var-border text-var-primary hover:bg-var-card'
             }`}
           >
             <Settings className="w-3.5 h-3.5" />
@@ -419,15 +409,15 @@ export default function BoardDetailsClient({
 
         {/* Master Data Settings Sidebar Drawer */}
         {isSettingsOpen && (
-          <aside className="w-72 md:w-80 bg-[#161616] border-l border-gray-800 p-5 overflow-y-auto flex flex-col h-[calc(100vh-65px)] flex-shrink-0">
-            <div className="flex items-center justify-between mb-5 pb-2 border-b border-gray-800">
-              <h2 className="text-xs font-bold text-white flex items-center gap-1.5">
+          <aside className="w-72 md:w-80 bg-var-card border-l border-var-border p-5 overflow-y-auto flex flex-col h-[calc(100vh-65px)] flex-shrink-0">
+            <div className="flex items-center justify-between mb-5 pb-2 border-b border-var-border">
+              <h2 className="text-xs font-bold text-var-primary flex items-center gap-1.5">
                 <Settings className="w-3.5 h-3.5 text-indigo-400" />
                 Master Data Projek
               </h2>
               <button
                 onClick={() => setIsSettingsOpen(false)}
-                className="p-1 hover:bg-gray-800 rounded text-gray-400 hover:text-white transition-colors cursor-pointer"
+                className="p-1 hover:bg-var-card-subtle rounded text-var-secondary hover:text-var-primary transition-colors cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -436,7 +426,7 @@ export default function BoardDetailsClient({
             {/* Members Section */}
             <div className="mb-7">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[11px] font-bold text-gray-300 flex items-center gap-1.5 uppercase tracking-wider">
+                <h3 className="text-[11px] font-bold text-var-secondary flex items-center gap-1.5 uppercase tracking-wider">
                   <Users className="w-3.5 h-3.5 text-emerald-400" />
                   Anggota ({members.length})
                 </h3>
@@ -445,7 +435,7 @@ export default function BoardDetailsClient({
                     setMemberError(null)
                     setIsNewMemberOpen(true)
                   }}
-                  className="p-1 hover:bg-gray-800 text-indigo-400 hover:text-indigo-300 rounded cursor-pointer"
+                  className="p-1 hover:bg-var-card-subtle text-indigo-400 hover:text-indigo-300 rounded cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
@@ -455,19 +445,14 @@ export default function BoardDetailsClient({
                 {members.map((m) => (
                   <div
                     key={m.id}
-                    className="flex items-center justify-between px-3 py-2 bg-[#202020] border border-gray-800 rounded-lg"
+                    className="flex items-center justify-between px-3 py-2 bg-var-card-subtle border border-var-border rounded-lg"
                   >
                     <div className="flex items-center gap-2">
                       <div
-                        className="w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold flex-shrink-0"
-                        style={{
-                          backgroundColor: `${m.color}20`,
-                          color: m.color,
-                        }}
-                      >
-                        {getInitials(m.name)}
-                      </div>
-                      <span className="text-xs font-medium text-gray-200 truncate max-w-[140px]">
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: m.color }}
+                      />
+                      <span className="text-xs font-bold text-var-primary truncate max-w-[140px]">
                         {m.name}
                       </span>
                     </div>
@@ -478,14 +463,14 @@ export default function BoardDetailsClient({
                           router.refresh()
                         }
                       }}
-                      className="p-1 text-gray-600 hover:text-red-400 rounded transition-colors cursor-pointer"
+                      className="p-1 text-var-secondary hover:text-red-400 rounded transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
                 ))}
                 {members.length === 0 && (
-                  <p className="text-[11px] text-gray-600 italic">Belum ada anggota di projek ini.</p>
+                  <p className="text-[11px] text-var-secondary italic">Belum ada anggota di projek ini.</p>
                 )}
               </div>
             </div>
@@ -493,7 +478,7 @@ export default function BoardDetailsClient({
             {/* Task Types Section */}
             <div className="mb-7">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[11px] font-bold text-gray-300 flex items-center gap-1.5 uppercase tracking-wider">
+                <h3 className="text-[11px] font-bold text-var-secondary flex items-center gap-1.5 uppercase tracking-wider">
                   <Layers className="w-3.5 h-3.5 text-cyan-400" />
                   Tipe Tugas ({taskTypes.length})
                 </h3>
@@ -502,7 +487,7 @@ export default function BoardDetailsClient({
                     setTaskTypeError(null)
                     setIsNewTaskTypeOpen(true)
                   }}
-                  className="p-1 hover:bg-gray-800 text-indigo-400 hover:text-indigo-300 rounded cursor-pointer"
+                  className="p-1 hover:bg-var-card-subtle text-indigo-400 hover:text-indigo-300 rounded cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
@@ -512,7 +497,7 @@ export default function BoardDetailsClient({
                 {taskTypes.map((t) => (
                   <div
                     key={t.id}
-                    className="flex items-center justify-between px-3 py-2 bg-[#202020] border border-gray-800 rounded-lg"
+                    className="flex items-center justify-between px-3 py-2 bg-var-card-subtle border border-var-border rounded-lg"
                   >
                     <span
                       className="px-2 py-0.5 rounded text-[10px] font-bold"
@@ -531,14 +516,14 @@ export default function BoardDetailsClient({
                           router.refresh()
                         }
                       }}
-                      className="p-1 text-gray-600 hover:text-red-400 rounded transition-colors cursor-pointer"
+                      className="p-1 text-var-secondary hover:text-red-400 rounded transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
                 ))}
                 {taskTypes.length === 0 && (
-                  <p className="text-[11px] text-gray-600 italic">Belum ada tipe tugas.</p>
+                  <p className="text-[11px] text-var-secondary italic">Belum ada tipe tugas.</p>
                 )}
               </div>
             </div>
@@ -546,7 +531,7 @@ export default function BoardDetailsClient({
             {/* Status Columns Section */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[11px] font-bold text-gray-300 uppercase tracking-wider">
+                <h3 className="text-[11px] font-bold text-var-secondary uppercase tracking-wider">
                   Kolom Status ({statuses.length})
                 </h3>
                 <button
@@ -554,7 +539,7 @@ export default function BoardDetailsClient({
                     setStatusError(null)
                     setIsNewStatusOpen(true)
                   }}
-                  className="p-1 hover:bg-gray-800 text-indigo-400 hover:text-indigo-300 rounded cursor-pointer"
+                  className="p-1 hover:bg-var-card-subtle text-indigo-400 hover:text-indigo-300 rounded cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
@@ -563,14 +548,14 @@ export default function BoardDetailsClient({
                 {statuses.map((s) => (
                   <div
                     key={s.id}
-                    className="flex items-center justify-between px-3 py-2 bg-[#202020] border border-gray-800 rounded-lg"
+                    className="flex items-center justify-between px-3 py-2 bg-var-card-subtle border border-var-border rounded-lg"
                   >
                     <div className="flex items-center gap-2">
                       <span
                         className="w-2 h-2 rounded-full flex-shrink-0"
                         style={{ backgroundColor: s.color }}
                       />
-                      <span className="text-xs font-medium text-gray-200 truncate max-w-[150px]">
+                      <span className="text-xs font-medium text-var-primary truncate max-w-[150px]">
                         {s.name}
                       </span>
                     </div>
@@ -581,14 +566,14 @@ export default function BoardDetailsClient({
                           router.refresh()
                         }
                       }}
-                      className="p-1 text-gray-600 hover:text-red-400 rounded transition-colors cursor-pointer"
+                      className="p-1 text-var-secondary hover:text-red-400 rounded transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
                 ))}
                 {statuses.length === 0 && (
-                  <p className="text-[11px] text-gray-600 italic">Belum ada kolom.</p>
+                  <p className="text-[11px] text-var-secondary italic">Belum ada kolom.</p>
                 )}
               </div>
             </div>
@@ -599,9 +584,9 @@ export default function BoardDetailsClient({
       {/* ── MODALS (Task, Status, Member, TaskType, Detail) ── */}
       {isNewTaskOpen && (
         <Modal onClose={() => setIsNewTaskOpen(false)}>
-          <div className="flex items-center justify-between mb-5 pb-2 border-b border-gray-800">
-            <h3 className="text-sm font-bold text-white">Buat Tugas Baru</h3>
-            <button onClick={() => setIsNewTaskOpen(false)} className="text-gray-400 hover:text-white">
+          <div className="flex items-center justify-between mb-5 pb-2 border-b border-var-border">
+            <h3 className="text-sm font-bold text-var-primary">Buat Tugas Baru</h3>
+            <button onClick={() => setIsNewTaskOpen(false)} className="text-var-secondary hover:text-var-primary">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -610,7 +595,7 @@ export default function BoardDetailsClient({
 
           <form onSubmit={handleCreateTask} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1">
+              <label className="block text-xs font-bold text-var-secondary mb-1">
                 Judul Tugas <span className="text-red-400">*</span>
               </label>
               <input
@@ -618,26 +603,26 @@ export default function BoardDetailsClient({
                 name="title"
                 required
                 placeholder="Judul/Nama tugas..."
-                className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-white text-sm"
+                className="w-full px-4 py-2.5 bg-var-input border border-var-border rounded-lg text-var-primary text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1">Deskripsi</label>
+              <label className="block text-xs font-bold text-var-secondary mb-1">Deskripsi</label>
               <textarea
                 name="description"
                 rows={3}
                 placeholder="Detail tugas..."
-                className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-white text-sm resize-none"
+                className="w-full px-4 py-2.5 bg-var-input border border-var-border rounded-lg text-var-primary text-sm resize-none"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-gray-300 mb-1">Tipe Tugas</label>
+                <label className="block text-xs font-bold text-var-secondary mb-1">Tipe Tugas</label>
                 <select
                   name="type_id"
-                  className="w-full px-3 py-2 bg-[#202020] border border-gray-700 rounded-lg text-gray-200 text-xs"
+                  className="w-full px-3 py-2 bg-var-input border border-var-border rounded-lg text-var-primary text-xs"
                 >
                   <option value="">-- Tipe --</option>
                   {taskTypes.map((t) => (
@@ -648,10 +633,10 @@ export default function BoardDetailsClient({
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-300 mb-1">Assignee</label>
+                <label className="block text-xs font-bold text-var-secondary mb-1">Assignee</label>
                 <select
                   name="assignee_id"
-                  className="w-full px-3 py-2 bg-[#202020] border border-gray-700 rounded-lg text-gray-200 text-xs"
+                  className="w-full px-3 py-2 bg-var-input border border-var-border rounded-lg text-var-primary text-xs"
                 >
                   <option value="">-- Anggota --</option>
                   {members.map((m) => (
@@ -664,19 +649,19 @@ export default function BoardDetailsClient({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1">Deadline</label>
+              <label className="block text-xs font-bold text-var-secondary mb-1">Deadline</label>
               <input
                 type="date"
                 name="deadline"
-                className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-white text-sm"
+                className="w-full px-4 py-2.5 bg-var-input border border-var-border rounded-lg text-var-primary text-sm"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-800">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-var-border">
               <button
                 type="button"
                 onClick={() => setIsNewTaskOpen(false)}
-                className="text-xs text-gray-400 hover:text-white cursor-pointer font-bold"
+                className="text-xs text-var-secondary hover:text-var-primary cursor-pointer font-bold"
               >
                 Batal
               </button>
@@ -695,35 +680,35 @@ export default function BoardDetailsClient({
       {/* Status Modal */}
       {isNewStatusOpen && (
         <Modal onClose={() => setIsNewStatusOpen(false)} maxWidth="max-w-sm">
-          <h3 className="text-sm font-bold text-white mb-4 pb-2 border-b border-gray-800">
+          <h3 className="text-sm font-bold text-var-primary mb-4 pb-2 border-b border-var-border">
             Tambah Kolom Baru
           </h3>
           {statusError && <ErrorAlert message={statusError} />}
           <form onSubmit={handleCreateStatus} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1">Nama Kolom</label>
+              <label className="block text-xs font-bold text-var-secondary mb-1">Nama Kolom</label>
               <input
                 type="text"
                 name="name"
                 required
                 placeholder="Contoh: Review"
-                className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-white text-sm"
+                className="w-full px-4 py-2.5 bg-var-input border border-var-border rounded-lg text-var-primary text-sm"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1">Warna Label</label>
+              <label className="block text-xs font-bold text-var-secondary mb-1">Warna Label</label>
               <input
                 type="color"
                 name="color"
                 defaultValue="#6366f1"
-                className="w-full h-10 bg-transparent cursor-pointer rounded-lg border border-gray-700"
+                className="w-full h-10 bg-transparent cursor-pointer rounded-lg border border-var-border"
               />
             </div>
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setIsNewStatusOpen(false)}
-                className="text-xs text-gray-400 hover:text-white cursor-pointer font-bold"
+                className="text-xs text-var-secondary hover:text-var-primary cursor-pointer font-bold"
               >
                 Batal
               </button>
@@ -742,35 +727,35 @@ export default function BoardDetailsClient({
       {/* Member Modal */}
       {isNewMemberOpen && (
         <Modal onClose={() => setIsNewMemberOpen(false)} maxWidth="max-w-sm">
-          <h3 className="text-sm font-bold text-white mb-4 pb-2 border-b border-gray-800">
+          <h3 className="text-sm font-bold text-var-primary mb-4 pb-2 border-b border-var-border">
             Tambah Anggota Projek
           </h3>
           {memberError && <ErrorAlert message={memberError} />}
           <form onSubmit={handleCreateMember} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1">Nama Lengkap</label>
+              <label className="block text-xs font-bold text-var-secondary mb-1">Nama Lengkap</label>
               <input
                 type="text"
                 name="name"
                 required
                 placeholder="Nama anggota..."
-                className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-white text-sm"
+                className="w-full px-4 py-2.5 bg-var-input border border-var-border rounded-lg text-var-primary text-sm"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1">Warna Avatar</label>
+              <label className="block text-xs font-bold text-var-secondary mb-1">Warna Avatar</label>
               <input
                 type="color"
                 name="color"
                 defaultValue="#10b981"
-                className="w-full h-10 bg-transparent cursor-pointer rounded-lg border border-gray-700"
+                className="w-full h-10 bg-transparent cursor-pointer rounded-lg border border-var-border"
               />
             </div>
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setIsNewMemberOpen(false)}
-                className="text-xs text-gray-400 hover:text-white font-bold"
+                className="text-xs text-var-secondary hover:text-var-primary font-bold"
               >
                 Batal
               </button>
@@ -789,35 +774,35 @@ export default function BoardDetailsClient({
       {/* Task Type Modal */}
       {isNewTaskTypeOpen && (
         <Modal onClose={() => setIsNewTaskTypeOpen(false)} maxWidth="max-w-sm">
-          <h3 className="text-sm font-bold text-white mb-4 pb-2 border-b border-gray-800">
+          <h3 className="text-sm font-bold text-var-primary mb-4 pb-2 border-b border-var-border">
             Tambah Tipe Tugas
           </h3>
           {taskTypeError && <ErrorAlert message={taskTypeError} />}
           <form onSubmit={handleCreateTaskType} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1">Nama Tipe</label>
+              <label className="block text-xs font-bold text-var-secondary mb-1">Nama Tipe</label>
               <input
                 type="text"
                 name="name"
                 required
                 placeholder="Contoh: Desain Grafis"
-                className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-white text-sm"
+                className="w-full px-4 py-2.5 bg-var-input border border-var-border rounded-lg text-var-primary text-sm"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1">Warna Label</label>
+              <label className="block text-xs font-bold text-var-secondary mb-1">Warna Label</label>
               <input
                 type="color"
                 name="color"
                 defaultValue="#0ea5e9"
-                className="w-full h-10 bg-transparent cursor-pointer rounded-lg border border-gray-700"
+                className="w-full h-10 bg-transparent cursor-pointer rounded-lg border border-var-border"
               />
             </div>
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setIsNewTaskTypeOpen(false)}
-                className="text-xs text-gray-400 hover:text-white font-bold"
+                className="text-xs text-var-secondary hover:text-var-primary font-bold"
               >
                 Batal
               </button>
@@ -847,8 +832,8 @@ export default function BoardDetailsClient({
             }}
           />
 
-          <div className="relative w-full max-w-2xl bg-[#181818] border border-gray-800 rounded-xl overflow-y-auto max-h-[94vh] flex flex-col">
-            <div className="flex items-start justify-between p-5 md:p-6 pb-4 border-b border-gray-800 flex-shrink-0">
+          <div className="relative w-full max-w-2xl bg-var-card border border-var-border rounded-xl overflow-y-auto max-h-[94vh] flex flex-col">
+            <div className="flex items-start justify-between p-5 md:p-6 pb-4 border-b border-var-border flex-shrink-0">
               <div className="flex-1 pr-4 min-w-0">
                 <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">
                   Detail Tugas
@@ -864,18 +849,18 @@ export default function BoardDetailsClient({
                         if (e.key === 'Enter') handleSaveTitle()
                         if (e.key === 'Escape') setEditingTitle(false)
                       }}
-                      className="flex-1 bg-[#202020] border border-indigo-500 rounded px-2 py-1 text-sm font-bold text-white"
+                      className="flex-1 bg-var-input border border-indigo-500 rounded px-2 py-1 text-sm font-bold text-var-primary"
                     />
                     <button onClick={handleSaveTitle} className="p-1.5 bg-indigo-600 text-white rounded cursor-pointer">
                       <Check className="w-3.5 h-3.5" />
                     </button>
-                    <button onClick={() => setEditingTitle(false)} className="p-1.5 bg-[#252525] text-gray-400 rounded cursor-pointer">
+                    <button onClick={() => setEditingTitle(false)} className="p-1.5 bg-var-card-subtle text-var-secondary rounded cursor-pointer">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 group/title">
-                    <h3 className="text-base font-bold text-white mt-1 leading-snug">
+                    <h3 className="text-base font-bold text-var-primary mt-1 leading-snug break-words">
                       {selectedTask.title}
                     </h3>
                     <button
@@ -883,7 +868,7 @@ export default function BoardDetailsClient({
                         setEditTitleValue(selectedTask.title)
                         setEditingTitle(true)
                       }}
-                      className="opacity-0 group-hover/title:opacity-100 p-1 text-gray-500 hover:text-gray-300 transition-opacity mt-1 cursor-pointer"
+                      className="opacity-0 group-hover/title:opacity-100 p-1 text-var-secondary hover:text-var-primary transition-opacity mt-1 cursor-pointer"
                     >
                       <Pencil className="w-3 h-3" />
                     </button>
@@ -906,7 +891,7 @@ export default function BoardDetailsClient({
                     setEditingTitle(false)
                     setEditingDescription(false)
                   }}
-                  className="p-2 hover:bg-gray-800 text-gray-400 hover:text-white rounded-lg cursor-pointer"
+                  className="p-2 hover:bg-var-card-subtle text-var-secondary hover:text-var-primary rounded-lg cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -917,14 +902,14 @@ export default function BoardDetailsClient({
               <div className="md:col-span-2 space-y-5">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-xs font-bold text-gray-300">Deskripsi</h4>
+                    <h4 className="text-xs font-bold text-var-secondary">Deskripsi</h4>
                     {!editingDescription && (
                       <button
                         onClick={() => {
                           setEditDescriptionValue(selectedTask.description || '')
                           setEditingDescription(true)
                         }}
-                        className="text-[10px] text-gray-500 hover:text-indigo-400 flex items-center gap-1 cursor-pointer"
+                        className="text-[10px] text-var-secondary hover:text-indigo-400 flex items-center gap-1 cursor-pointer"
                       >
                         <Pencil className="w-2.5 h-2.5" /> Edit
                       </button>
@@ -937,7 +922,7 @@ export default function BoardDetailsClient({
                         rows={4}
                         value={editDescriptionValue}
                         onChange={(e) => setEditDescriptionValue(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#202020] border border-indigo-500 rounded-lg text-xs text-gray-200 resize-none"
+                        className="w-full px-3 py-2 bg-var-input border border-indigo-500 rounded-lg text-xs text-var-primary resize-none"
                       />
                       <div className="flex gap-2">
                         <button
@@ -948,7 +933,7 @@ export default function BoardDetailsClient({
                         </button>
                         <button
                           onClick={() => setEditingDescription(false)}
-                          className="px-4 py-1.5 bg-[#252525] text-gray-400 text-xs font-bold rounded cursor-pointer border border-gray-700"
+                          className="px-4 py-1.5 bg-var-card-subtle text-var-secondary text-xs font-bold rounded cursor-pointer border border-var-border"
                         >
                           Batal
                         </button>
@@ -960,17 +945,17 @@ export default function BoardDetailsClient({
                         setEditDescriptionValue(selectedTask.description || '')
                         setEditingDescription(true)
                       }}
-                      className="text-xs text-gray-400 bg-[#121212] p-4 rounded-lg border border-gray-800 whitespace-pre-wrap cursor-text min-h-[60px]"
+                      className="text-xs text-var-primary bg-var-primary p-4 rounded-lg border border-var-border whitespace-pre-wrap cursor-text min-h-[60px] break-words"
                     >
                       {selectedTask.description || (
-                        <span className="text-gray-600 italic">Klik untuk menambah deskripsi...</span>
+                        <span className="text-var-secondary italic">Klik untuk menambah deskripsi...</span>
                       )}
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-bold text-gray-300 mb-2 flex items-center gap-1.5">
+                  <h4 className="text-xs font-bold text-var-secondary mb-2 flex items-center gap-1.5">
                     <Paperclip className="w-3 h-3 text-indigo-400" />
                     Lampiran ({selectedTaskAttachments.length})
                   </h4>
@@ -979,7 +964,7 @@ export default function BoardDetailsClient({
                     {selectedTaskAttachments.map((a) => (
                       <div
                         key={a.id}
-                        className="flex items-center justify-between p-2.5 bg-[#121212] border border-gray-800 rounded-lg"
+                        className="flex items-center justify-between p-2.5 bg-var-primary border border-var-border rounded-lg"
                       >
                         <a
                           href={a.url}
@@ -992,18 +977,18 @@ export default function BoardDetailsClient({
                         </a>
                         <button
                           onClick={() => handleDeleteAttachment(a.id)}
-                          className="text-gray-600 hover:text-red-400 cursor-pointer p-1 rounded flex-shrink-0 ml-2"
+                          className="text-var-secondary hover:text-red-400 cursor-pointer p-1 rounded flex-shrink-0 ml-2"
                         >
                           <X className="w-3 h-3" />
                         </button>
                       </div>
                     ))}
                     {selectedTaskAttachments.length === 0 && (
-                      <p className="text-xs text-gray-600 italic">Belum ada lampiran.</p>
+                      <p className="text-xs text-var-secondary italic">Belum ada lampiran.</p>
                     )}
                   </div>
 
-                  <div className="space-y-3 p-3 bg-[#121212] border border-gray-800 rounded-lg">
+                  <div className="space-y-3 p-3 bg-var-primary border border-var-border rounded-lg">
                     {uploadError && (
                       <div className="text-[11px] text-red-400 bg-red-500/10 p-2 border border-red-500/20 rounded flex items-start gap-1.5">
                         <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
@@ -1012,24 +997,24 @@ export default function BoardDetailsClient({
                     )}
 
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase">
+                      <label className="block text-[10px] font-bold text-var-secondary mb-1.5 uppercase">
                         Unggah Berkas (Maks. 10 MB)
                       </label>
                       <input
                         type="file"
                         onChange={handleFileUpload}
                         disabled={isUploading}
-                        className="w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border file:border-gray-700 file:bg-[#202020] file:text-gray-300 hover:file:bg-[#252525] file:text-[11px] file:font-bold file:cursor-pointer cursor-pointer"
+                        className="w-full text-xs text-var-secondary file:mr-3 file:py-1.5 file:px-3 file:rounded file:border file:border-var-border file:bg-var-card-subtle file:text-var-primary hover:file:bg-var-card file:text-[11px] file:font-bold file:cursor-pointer cursor-pointer"
                       />
                       {isUploading && (
                         <span className="text-[11px] text-indigo-400 mt-1 block">Mengunggah...</span>
                       )}
                     </div>
 
-                    <div className="h-px bg-gray-800" />
+                    <div className="h-px bg-var-border" />
 
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase">
+                      <label className="block text-[10px] font-bold text-var-secondary mb-1.5 uppercase">
                         Tambah Link URL
                       </label>
                       <div className="space-y-2">
@@ -1038,7 +1023,7 @@ export default function BoardDetailsClient({
                           placeholder="Label (misal: Figma, Drive)"
                           value={attachmentLabel}
                           onChange={(e) => setAttachmentLabel(e.target.value)}
-                          className="w-full px-3 py-1.5 bg-[#202020] border border-gray-700 rounded text-xs text-gray-200"
+                          className="w-full px-3 py-1.5 bg-var-input border border-var-border rounded text-xs text-var-primary"
                         />
                         <div className="flex gap-2">
                           <input
@@ -1046,12 +1031,12 @@ export default function BoardDetailsClient({
                             placeholder="https://..."
                             value={attachmentUrl}
                             onChange={(e) => setAttachmentUrl(e.target.value)}
-                            className="flex-1 px-3 py-1.5 bg-[#202020] border border-gray-700 rounded text-xs text-gray-200"
+                            className="flex-1 px-3 py-1.5 bg-var-input border border-var-border rounded text-xs text-var-primary"
                           />
                           <button
                             onClick={handleAddLinkAttachment}
                             disabled={isAddingLink || !attachmentUrl.trim()}
-                            className="px-4 py-1.5 bg-[#202020] hover:bg-[#252525] border border-gray-700 text-gray-200 font-bold rounded text-xs cursor-pointer"
+                            className="px-4 py-1.5 bg-var-card-subtle hover:bg-var-border border border-var-border text-var-primary font-bold rounded text-xs cursor-pointer"
                           >
                             {isAddingLink ? '...' : 'Tambah'}
                           </button>
@@ -1063,11 +1048,11 @@ export default function BoardDetailsClient({
               </div>
 
               {/* Task Attributes Sidebar */}
-              <div className="space-y-4 bg-[#121212] p-4 rounded-lg border border-gray-800 self-start">
-                <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Atribut</h4>
+              <div className="space-y-4 bg-var-primary p-4 rounded-lg border border-var-border self-start">
+                <h4 className="text-[10px] font-bold text-var-secondary uppercase tracking-wider mb-3">Atribut</h4>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 mb-1">Status / Kolom</label>
+                  <label className="block text-[10px] font-bold text-var-secondary mb-1">Status / Kolom</label>
                   <select
                     value={selectedTask.status_id || ''}
                     onChange={(e) => {
@@ -1075,7 +1060,7 @@ export default function BoardDetailsClient({
                       setSelectedTask({ ...selectedTask, status_id: val })
                       handleUpdateTaskField(selectedTask.id, { status_id: val })
                     }}
-                    className="w-full px-2.5 py-2 bg-[#202020] border border-gray-700 rounded text-xs text-gray-200"
+                    className="w-full px-2.5 py-2 bg-var-input border border-var-border rounded text-xs text-var-primary"
                   >
                     <option value="">Belum Ditugaskan</option>
                     {statuses.map((s) => (
@@ -1087,7 +1072,7 @@ export default function BoardDetailsClient({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 mb-1">Assignee</label>
+                  <label className="block text-[10px] font-bold text-var-secondary mb-1">Assignee</label>
                   <select
                     value={selectedTask.assignee_id || ''}
                     onChange={(e) => {
@@ -1095,7 +1080,7 @@ export default function BoardDetailsClient({
                       setSelectedTask({ ...selectedTask, assignee_id: val })
                       handleUpdateTaskField(selectedTask.id, { assignee_id: val })
                     }}
-                    className="w-full px-2.5 py-2 bg-[#202020] border border-gray-700 rounded text-xs text-gray-200"
+                    className="w-full px-2.5 py-2 bg-var-input border border-var-border rounded text-xs text-var-primary"
                   >
                     <option value="">Tidak Ada</option>
                     {members.map((m) => (
@@ -1107,7 +1092,7 @@ export default function BoardDetailsClient({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 mb-1">Tipe Tugas</label>
+                  <label className="block text-[10px] font-bold text-var-secondary mb-1">Tipe Tugas</label>
                   <select
                     value={selectedTask.type_id || ''}
                     onChange={(e) => {
@@ -1115,7 +1100,7 @@ export default function BoardDetailsClient({
                       setSelectedTask({ ...selectedTask, type_id: val })
                       handleUpdateTaskField(selectedTask.id, { type_id: val })
                     }}
-                    className="w-full px-2.5 py-2 bg-[#202020] border border-gray-700 rounded text-xs text-gray-200"
+                    className="w-full px-2.5 py-2 bg-var-input border border-var-border rounded text-xs text-var-primary"
                   >
                     <option value="">Tidak Ada</option>
                     {taskTypes.map((t) => (
@@ -1127,7 +1112,7 @@ export default function BoardDetailsClient({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 mb-1">Deadline</label>
+                  <label className="block text-[10px] font-bold text-var-secondary mb-1">Deadline</label>
                   <input
                     type="date"
                     value={selectedTask.deadline ? selectedTask.deadline.split('T')[0] : ''}
@@ -1136,7 +1121,7 @@ export default function BoardDetailsClient({
                       setSelectedTask({ ...selectedTask, deadline: val })
                       handleUpdateTaskField(selectedTask.id, { deadline: val })
                     }}
-                    className="w-full px-2.5 py-2 bg-[#202020] border border-gray-700 rounded text-xs text-gray-200"
+                    className="w-full px-2.5 py-2 bg-var-input border border-var-border rounded text-xs text-var-primary"
                   />
                 </div>
               </div>
@@ -1152,7 +1137,7 @@ function Modal({ children, onClose, maxWidth = 'max-w-md' }: { children: React.R
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className={`relative w-full ${maxWidth} bg-[#181818] border border-gray-800 rounded-xl p-5 md:p-6`}>
+      <div className={`relative w-full ${maxWidth} bg-var-card border border-var-border rounded-xl p-5 md:p-6`}>
         {children}
       </div>
     </div>
