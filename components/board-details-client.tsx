@@ -27,6 +27,8 @@ import {
   AlertCircle,
   Pencil,
   Check,
+  Download,
+  ExternalLink,
 } from 'lucide-react'
 import Link from 'next/link'
 import MultiViewWorkspace, {
@@ -960,27 +962,55 @@ export default function BoardDetailsClient({
                     Lampiran ({selectedTaskAttachments.length})
                   </h4>
 
-                  <div className="space-y-1.5 mb-3">
+                  <div className="space-y-2 mb-3">
                     {selectedTaskAttachments.map((a) => (
                       <div
                         key={a.id}
-                        className="flex items-center justify-between p-2.5 bg-var-primary border border-var-border rounded-lg"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 bg-var-primary border border-var-border rounded-lg"
                       >
-                        <a
-                          href={a.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 text-xs font-medium min-w-0"
-                        >
-                          {a.kind === 'file' ? <Upload className="w-3 h-3 flex-shrink-0" /> : <LinkIcon className="w-3 h-3 flex-shrink-0" />}
-                          <span className="truncate">{a.label || a.url}</span>
-                        </a>
-                        <button
-                          onClick={() => handleDeleteAttachment(a.id)}
-                          className="text-var-secondary hover:text-red-400 cursor-pointer p-1 rounded flex-shrink-0 ml-2"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
+                        <div className="flex items-center gap-2 min-w-0">
+                          {a.kind === 'file' ? (
+                            <Upload className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                          ) : (
+                            <LinkIcon className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
+                          )}
+                          <span className="text-xs font-bold text-var-primary truncate max-w-[200px]" title={a.label || a.url}>
+                            {a.label || a.url}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+                          {a.kind === 'file' ? (
+                            <a
+                              href={a.url}
+                              download={a.label || 'file'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[11px] font-bold transition-colors cursor-pointer"
+                              title="Unduh Berkas ke Laptop/HP"
+                            >
+                              <Download className="w-3 h-3" /> Unduh
+                            </a>
+                          ) : (
+                            <a
+                              href={a.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 px-2.5 py-1 bg-var-card-subtle hover:bg-var-border text-indigo-400 rounded text-[11px] font-bold border border-var-border transition-colors cursor-pointer"
+                              title="Buka Tautan URL"
+                            >
+                              <ExternalLink className="w-3 h-3" /> Buka
+                            </a>
+                          )}
+
+                          <button
+                            onClick={() => handleDeleteAttachment(a.id)}
+                            className="p-1 text-var-secondary hover:text-red-400 cursor-pointer rounded transition-colors"
+                            title="Hapus Lampiran"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                     {selectedTaskAttachments.length === 0 && (
