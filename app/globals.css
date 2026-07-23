@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+:root {
+  --background: #121212;
+  --foreground: #f3f4f6;
+  --font-sans: var(--font-poppins), system-ui, sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+}
+
+body {
+  background-color: #121212;
+  color: #f3f4f6;
+  font-family: var(--font-sans);
+}
+
+/* Eliminate shadows and glowing effects from inputs and focus rings globally */
+*:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+input, select, textarea {
+  box-shadow: none !important;
+}
+
+/* Flat UI styles override */
+.shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl, .shadow-inner {
+  box-shadow: none !important;
+}
+
+.backdrop-blur-sm, .backdrop-blur-md, .backdrop-blur-lg, .backdrop-blur {
+  backdrop-filter: none !important;
+}
