@@ -94,7 +94,6 @@ function getInitials(name: string): string {
     .substring(0, 2)
 }
 
-// Helper to calculate H-5 status
 function getH5Status(deadlineStr: string | null) {
   if (!deadlineStr) return null
   const now = new Date()
@@ -117,7 +116,7 @@ function getH5Status(deadlineStr: string | null) {
 }
 
 // ─────────────────────────────────────────
-// Component: MultiViewWorkspace
+// Component: MultiViewWorkspace (Mobile-Optimized)
 // ─────────────────────────────────────────
 export default function MultiViewWorkspace({
   tasks,
@@ -151,10 +150,10 @@ export default function MultiViewWorkspace({
   const [endDateFilter, setEndDateFilter] = useState<string>('')
   const [selectedCalendarMonth, setSelectedCalendarMonth] = useState<Date>(new Date())
 
-  // DND Kit State
+  // DND State
   const [activeDragTask, setActiveDragTask] = useState<Task | null>(null)
 
-  // Configure sensors: TouchSensor with 150ms hold delay for HP!
+  // Configure sensors for mobile touch hold (150ms delay to allow normal scrolling)
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {
@@ -163,7 +162,7 @@ export default function MultiViewWorkspace({
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 150, // 150ms hold to drag on touch screens
+        delay: 150,
         tolerance: 5,
       },
     })
@@ -172,18 +171,15 @@ export default function MultiViewWorkspace({
   // Filter tasks
   const filteredTasks = useMemo(() => {
     return tasks.filter((t) => {
-      // Search
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase()
         const matchTitle = t.title.toLowerCase().includes(query)
         const matchDesc = t.description?.toLowerCase().includes(query)
         if (!matchTitle && !matchDesc) return false
       }
-      // Task Type
       if (selectedTypeId && t.type_id !== selectedTypeId) {
         return false
       }
-      // Date Range Filter
       if (startDateFilter && t.deadline) {
         const tDate = t.deadline.split('T')[0]
         if (tDate < startDateFilter) return false
@@ -196,7 +192,7 @@ export default function MultiViewWorkspace({
     })
   }, [tasks, searchQuery, selectedTypeId, startDateFilter, endDateFilter])
 
-  // Sort tasks automatically: closest deadline first!
+  // Sort: closest deadline first!
   const sortedTasksByDeadline = useMemo(() => {
     return [...filteredTasks].sort((a, b) => {
       if (!a.deadline && !b.deadline) return 0
@@ -206,7 +202,7 @@ export default function MultiViewWorkspace({
     })
   }, [filteredTasks])
 
-  // Get Urgent (H-5) tasks across all tasks
+  // H-5 Urgent tasks
   const urgentTasks = useMemo(() => {
     return sortedTasksByDeadline.filter((t) => {
       const h5 = getH5Status(t.deadline)
@@ -214,7 +210,6 @@ export default function MultiViewWorkspace({
     })
   }, [sortedTasksByDeadline])
 
-  // Drag handlers
   function handleDragStart(event: DragStartEvent) {
     const task = tasks.find((t) => t.id === event.active.id)
     if (task) setActiveDragTask(task)
@@ -223,7 +218,6 @@ export default function MultiViewWorkspace({
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     setActiveDragTask(null)
-
     if (!over) return
 
     const taskId = active.id as string
@@ -236,23 +230,23 @@ export default function MultiViewWorkspace({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 w-full max-w-full overflow-hidden">
       {/* ── 🚨 H-5 DEADLINE ALERT WIDGET ── */}
       {urgentTasks.length > 0 && (
-        <div className="bg-[#181818] border border-amber-500/30 rounded-xl p-4 md:p-5">
+        <div className="bg-[#181818] border border-amber-500/30 rounded-xl p-3.5 sm:p-5">
           <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-800">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-400 animate-pulse" />
+              <AlertTriangle className="w-4 h-4 text-amber-400 animate-pulse flex-shrink-0" />
               <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                Tugas Mendesak (≤ H-5 Deadline) — {urgentTasks.length} Tugas
+                Tugas Mendesak (≤ H-5 Deadline) — {urgentTasks.length}
               </h3>
             </div>
             <span className="text-[10px] text-amber-400 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-              Perlu Tindakan Cepat
+              Perlu Tindakan
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
             {urgentTasks.slice(0, 6).map((task) => {
               const h5 = getH5Status(task.deadline)
               const member = members.find((m) => m.id === task.assignee_id)
@@ -263,10 +257,10 @@ export default function MultiViewWorkspace({
                 <div
                   key={task.id}
                   onClick={() => onTaskClick(task)}
-                  className="bg-[#202020] border border-gray-800 hover:border-amber-500/40 p-3 rounded-lg cursor-pointer transition-colors flex flex-col justify-between gap-2"
+                  className="bg-[#202020] border border-gray-800 hover:border-amber-500/40 p-3 rounded-lg cursor-pointer transition-colors space-y-2"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span className="text-xs font-bold text-white line-clamp-1 hover:text-amber-400">
+                    <span className="text-xs font-bold text-white break-words flex-1 leading-snug">
                       {task.title}
                     </span>
                     {h5 && (
@@ -284,12 +278,12 @@ export default function MultiViewWorkspace({
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between text-[10px] text-gray-400 pt-1 border-t border-gray-850">
-                    <div className="flex items-center gap-1.5 truncate">
+                  <div className="flex items-center justify-between text-[10px] text-gray-400 pt-1.5 border-t border-gray-850">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       {board && !currentBoardId && (
                         <span
-                          className="px-1.5 py-0.5 rounded text-[8px] font-bold text-white truncate"
-                          style={{ backgroundColor: `${board.color}40`, border: `1px solid ${board.color}60` }}
+                          className="px-1.5 py-0.5 rounded text-[8px] font-bold text-white"
+                          style={{ backgroundColor: `${board.color}30`, border: `1px solid ${board.color}50` }}
                         >
                           {board.name}
                         </span>
@@ -304,7 +298,7 @@ export default function MultiViewWorkspace({
                       )}
                     </div>
                     {member && (
-                      <span className="font-bold text-gray-300 truncate max-w-[80px]">
+                      <span className="font-bold text-gray-300">
                         {member.name}
                       </span>
                     )}
@@ -317,13 +311,13 @@ export default function MultiViewWorkspace({
       )}
 
       {/* ── CONTROLS & FILTER BAR ── */}
-      <div className="bg-[#181818] border border-gray-800 p-4 rounded-xl space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          {/* View Switcher Tabs */}
-          <div className="flex items-center gap-1 bg-[#121212] p-1 rounded-lg border border-gray-800 self-start">
+      <div className="bg-[#181818] border border-gray-800 p-3.5 sm:p-4 rounded-xl space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* View Switcher Tabs (Scrollable on mobile) */}
+          <div className="flex items-center gap-1 bg-[#121212] p-1 rounded-lg border border-gray-800 overflow-x-auto max-w-full no-scrollbar">
             <button
               onClick={() => setActiveView('kanban')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-colors cursor-pointer flex-shrink-0 ${
                 activeView === 'kanban'
                   ? 'bg-indigo-600 text-white'
                   : 'text-gray-400 hover:text-white hover:bg-gray-800'
@@ -334,18 +328,18 @@ export default function MultiViewWorkspace({
             </button>
             <button
               onClick={() => setActiveView('list')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-colors cursor-pointer flex-shrink-0 ${
                 activeView === 'list'
                   ? 'bg-indigo-600 text-white'
                   : 'text-gray-400 hover:text-white hover:bg-gray-800'
               }`}
             >
               <List className="w-3.5 h-3.5" />
-              Daftar / List
+              Daftar
             </button>
             <button
               onClick={() => setActiveView('calendar')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-colors cursor-pointer flex-shrink-0 ${
                 activeView === 'calendar'
                   ? 'bg-indigo-600 text-white'
                   : 'text-gray-400 hover:text-white hover:bg-gray-800'
@@ -356,7 +350,7 @@ export default function MultiViewWorkspace({
             </button>
             <button
               onClick={() => setActiveView('table')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-colors cursor-pointer flex-shrink-0 ${
                 activeView === 'table'
                   ? 'bg-indigo-600 text-white'
                   : 'text-gray-400 hover:text-white hover:bg-gray-800'
@@ -368,7 +362,7 @@ export default function MultiViewWorkspace({
           </div>
 
           {/* Search Box */}
-          <div className="relative flex-1 max-w-md">
+          <div className="relative w-full sm:w-64">
             <Search className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -388,33 +382,28 @@ export default function MultiViewWorkspace({
           </div>
         </div>
 
-        {/* Filters Row */}
-        <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-gray-850 text-xs">
-          <div className="flex items-center gap-1.5 text-gray-400 font-bold">
-            <Filter className="w-3.5 h-3.5 text-indigo-400" />
-            Filter:
-          </div>
-
-          {/* Type Filter Buttons */}
-          <div className="flex flex-wrap items-center gap-1.5">
+        {/* Filters Row (Scrollable horizontally on mobile) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-gray-850 text-xs">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
+            <span className="text-gray-400 font-bold flex items-center gap-1 flex-shrink-0">
+              <Filter className="w-3.5 h-3.5 text-indigo-400" /> Tipe:
+            </span>
             <button
               onClick={() => setSelectedTypeId(null)}
-              className={`px-2.5 py-1 rounded text-[11px] font-bold border transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 rounded text-[11px] font-bold border transition-colors cursor-pointer flex-shrink-0 ${
                 selectedTypeId === null
                   ? 'bg-indigo-600 border-indigo-700 text-white'
                   : 'bg-[#202020] border-gray-700 text-gray-400 hover:text-white'
               }`}
             >
-              Semua Tipe
+              Semua
             </button>
             {taskTypes.map((tt) => (
               <button
                 key={tt.id}
                 onClick={() => setSelectedTypeId(selectedTypeId === tt.id ? null : tt.id)}
-                className={`px-2.5 py-1 rounded text-[11px] font-bold border transition-colors cursor-pointer ${
-                  selectedTypeId === tt.id
-                    ? 'border-white scale-105 text-white'
-                    : 'border-transparent opacity-80 hover:opacity-100'
+                className={`px-2.5 py-1 rounded text-[11px] font-bold border transition-colors cursor-pointer flex-shrink-0 ${
+                  selectedTypeId === tt.id ? 'border-white text-white scale-105' : 'border-transparent opacity-80'
                 }`}
                 style={{
                   backgroundColor: `${tt.color}25`,
@@ -427,11 +416,8 @@ export default function MultiViewWorkspace({
             ))}
           </div>
 
-          <div className="h-4 w-px bg-gray-800 hidden sm:block" />
-
-          {/* Date Filter Inputs */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] text-gray-500">Rentang:</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] text-gray-500 flex-shrink-0">Rentang:</span>
             <input
               type="date"
               value={startDateFilter}
@@ -451,9 +437,9 @@ export default function MultiViewWorkspace({
                   setStartDateFilter('')
                   setEndDateFilter('')
                 }}
-                className="text-[11px] text-indigo-400 hover:underline cursor-pointer"
+                className="text-[11px] text-indigo-400 hover:underline cursor-pointer ml-1"
               >
-                Reset Tanggal
+                Reset
               </button>
             )}
           </div>
@@ -462,15 +448,14 @@ export default function MultiViewWorkspace({
 
       {/* ── VIEWS RENDER ── */}
 
-      {/* 1. KANBAN VIEW (With Touch Hold & Drag via dnd-kit) */}
+      {/* 1. KANBAN VIEW (Snap scroll & full text card for mobile) */}
       {activeView === 'kanban' && (
         <DndContext
           sensors={sensors}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-800 touch-pan-x">
-            {/* Unassigned column */}
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-800 snap-x snap-mandatory touch-pan-x">
             <DroppableColumn
               id="unassigned"
               title="Belum Ditugaskan"
@@ -485,7 +470,6 @@ export default function MultiViewWorkspace({
               onAddTask={() => onAddTask(null)}
             />
 
-            {/* Status columns */}
             {statuses.map((status) => (
               <DroppableColumn
                 key={status.id}
@@ -507,25 +491,25 @@ export default function MultiViewWorkspace({
           <DragOverlay>
             {activeDragTask ? (
               <div className="bg-[#252525] border border-indigo-500 rounded-lg p-3 opacity-90 shadow-2xl scale-105">
-                <span className="text-xs font-bold text-white">{activeDragTask.title}</span>
+                <span className="text-xs font-bold text-white break-words">{activeDragTask.title}</span>
               </div>
             ) : null}
           </DragOverlay>
         </DndContext>
       )}
 
-      {/* 2. LIST VIEW (Sorted by closest deadline automatically) */}
+      {/* 2. LIST VIEW (Full text, sorted closest deadline first) */}
       {activeView === 'list' && (
-        <div className="bg-[#181818] border border-gray-800 rounded-xl p-4 md:p-6 space-y-3">
+        <div className="bg-[#181818] border border-gray-800 rounded-xl p-3.5 sm:p-5 space-y-3">
           <div className="flex items-center justify-between pb-3 border-b border-gray-800 text-xs font-bold text-gray-400">
-            <span>Daftar Tugas (Urut Deadline Terdekat Di Atas)</span>
-            <span>Total: {sortedTasksByDeadline.length} Tugas</span>
+            <span>Daftar Tugas (Urut Deadline Terdekat)</span>
+            <span>Total: {sortedTasksByDeadline.length}</span>
           </div>
 
           {sortedTasksByDeadline.length === 0 ? (
-            <p className="text-center text-xs text-gray-500 py-8">Tidak ada tugas yang sesuai filter.</p>
+            <p className="text-center text-xs text-gray-500 py-8">Tidak ada tugas.</p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {sortedTasksByDeadline.map((task) => {
                 const member = members.find((m) => m.id === task.assignee_id)
                 const taskType = taskTypes.find((t) => t.id === task.type_id)
@@ -537,22 +521,19 @@ export default function MultiViewWorkspace({
                   <div
                     key={task.id}
                     onClick={() => onTaskClick(task)}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-[#202020] hover:bg-[#252525] border border-gray-800 hover:border-gray-700 rounded-lg transition-colors cursor-pointer"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3.5 bg-[#202020] hover:bg-[#252525] border border-gray-800 hover:border-gray-700 rounded-lg transition-colors cursor-pointer"
                   >
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <div className="flex items-start gap-2.5 flex-1 min-w-0">
                       <span
                         className="w-2.5 h-2.5 rounded-full mt-1 flex-shrink-0"
                         style={{ backgroundColor: status?.color || '#6b7280' }}
                         title={status?.name || 'Belum Ditugaskan'}
                       />
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="text-sm font-bold text-white hover:text-indigo-400 transition-colors">
-                            {task.title}
-                          </h4>
+                      <div className="space-y-1 w-full min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           {board && !currentBoardId && (
                             <span
-                              className="px-2 py-0.5 rounded text-[9px] font-bold text-white"
+                              className="px-1.5 py-0.5 rounded text-[8px] font-bold text-white"
                               style={{ backgroundColor: `${board.color}30`, border: `1px solid ${board.color}50` }}
                             >
                               {board.name}
@@ -560,32 +541,40 @@ export default function MultiViewWorkspace({
                           )}
                           {taskType && (
                             <span
-                              className="px-2 py-0.5 rounded text-[9px] font-bold"
+                              className="px-1.5 py-0.5 rounded text-[8px] font-bold"
                               style={{ backgroundColor: `${taskType.color}20`, color: taskType.color }}
                             >
                               {taskType.name}
                             </span>
                           )}
+                          {status && (
+                            <span
+                              className="px-2 py-0.5 rounded text-[9px] font-bold"
+                              style={{ backgroundColor: `${status.color}15`, color: status.color }}
+                            >
+                              {status.name}
+                            </span>
+                          )}
                         </div>
+
+                        {/* Full Title (No truncation) */}
+                        <h4 className="text-xs sm:text-sm font-bold text-white break-words leading-snug">
+                          {task.title}
+                        </h4>
+
+                        {/* Full Description (No truncation) */}
                         {task.description && (
-                          <p className="text-xs text-gray-400 line-clamp-1 mt-0.5">{task.description}</p>
+                          <p className="text-[11px] text-gray-300 break-words whitespace-pre-wrap leading-relaxed">
+                            {task.description}
+                          </p>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4 text-xs flex-shrink-0 self-end sm:self-auto">
-                      {status && (
-                        <span
-                          className="px-2.5 py-1 rounded text-[10px] font-bold"
-                          style={{ backgroundColor: `${status.color}15`, color: status.color, border: `1px solid ${status.color}30` }}
-                        >
-                          {status.name}
-                        </span>
-                      )}
-
+                    <div className="flex items-center justify-between sm:justify-end gap-3 text-xs pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-850 flex-shrink-0">
                       {task.deadline ? (
-                        <div className="flex items-center gap-1.5 font-bold">
-                          <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                        <div className="flex items-center gap-1 font-bold text-[11px]">
+                          <Clock className="w-3 h-3 text-indigo-400" />
                           <span className={h5 ? 'text-amber-400' : 'text-gray-300'}>
                             {new Date(task.deadline).toLocaleDateString('id-ID', {
                               day: 'numeric',
@@ -607,7 +596,7 @@ export default function MultiViewWorkspace({
                           )}
                         </div>
                       ) : (
-                        <span className="text-gray-600 text-[11px]">Tanpa Deadline</span>
+                        <span className="text-gray-600 text-[10px]">Tanpa Deadline</span>
                       )}
 
                       {member ? (
@@ -647,7 +636,7 @@ export default function MultiViewWorkspace({
       {/* 4. TABLE VIEW */}
       {activeView === 'table' && (
         <div className="bg-[#181818] border border-gray-800 rounded-xl overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full text-left text-xs border-collapse min-w-[600px]">
             <thead>
               <tr className="bg-[#202020] border-b border-gray-800 text-gray-400 font-bold uppercase text-[10px] tracking-wider">
                 <th className="p-3">Judul Tugas</th>
@@ -672,7 +661,7 @@ export default function MultiViewWorkspace({
                     onClick={() => onTaskClick(task)}
                     className="hover:bg-[#202020] cursor-pointer transition-colors"
                   >
-                    <td className="p-3 font-bold text-white">{task.title}</td>
+                    <td className="p-3 font-bold text-white break-words max-w-xs">{task.title}</td>
                     {!currentBoardId && (
                       <td className="p-3 text-gray-400 font-medium">{board?.name || '-'}</td>
                     )}
@@ -707,7 +696,6 @@ export default function MultiViewWorkspace({
                           {new Date(task.deadline).toLocaleDateString('id-ID', {
                             day: 'numeric',
                             month: 'short',
-                            year: 'numeric',
                           })}
                         </span>
                       ) : (
@@ -720,7 +708,7 @@ export default function MultiViewWorkspace({
               {sortedTasksByDeadline.length === 0 && (
                 <tr>
                   <td colSpan={6} className="p-6 text-center text-gray-500">
-                    Tidak ada tugas ditemukan.
+                    Tidak ada tugas.
                   </td>
                 </tr>
               )}
@@ -733,7 +721,7 @@ export default function MultiViewWorkspace({
 }
 
 // ─────────────────────────────────────────
-// Droppable Kanban Column (Touch DND)
+// Droppable Column (Snap-X on Mobile)
 // ─────────────────────────────────────────
 function DroppableColumn({
   id,
@@ -765,11 +753,11 @@ function DroppableColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`w-72 flex-shrink-0 bg-[#181818] border rounded-xl flex flex-col max-h-[calc(100vh-180px)] overflow-hidden transition-colors ${
+      className={`w-[85vw] max-w-[320px] sm:w-72 flex-shrink-0 snap-center bg-[#181818] border rounded-xl flex flex-col max-h-[calc(100vh-170px)] overflow-hidden transition-colors ${
         isOver ? 'border-indigo-500 bg-[#1c1c1c]' : 'border-gray-800'
       }`}
     >
-      <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between flex-shrink-0">
+      <div className="px-3.5 py-3 border-b border-gray-800 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
           <h3 className="font-bold text-white text-xs truncate">{title}</h3>
@@ -787,7 +775,7 @@ function DroppableColumn({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-2.5 touch-pan-y">
+      <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5 touch-pan-y">
         {tasks.map((task) => (
           <DraggableTaskCard
             key={task.id}
@@ -802,7 +790,7 @@ function DroppableColumn({
         ))}
         {tasks.length === 0 && (
           <div className="border border-dashed border-gray-800 rounded-lg p-5 text-center text-[11px] text-gray-600">
-            Tarik atau buat tugas di sini.
+            Tahan & geser tugas ke sini.
           </div>
         )}
       </div>
@@ -811,7 +799,7 @@ function DroppableColumn({
 }
 
 // ─────────────────────────────────────────
-// Draggable Task Card (Touch Sensor Ready)
+// Draggable Task Card (Full text, no truncation on mobile)
 // ─────────────────────────────────────────
 function DraggableTaskCard({
   task,
@@ -880,18 +868,20 @@ function DraggableTaskCard({
         )}
       </div>
 
-      <h4 className="text-xs font-bold text-white group-hover:text-indigo-400 transition-colors line-clamp-2 leading-snug">
+      {/* FULL TITLE - NO CUTOFF */}
+      <h4 className="text-xs font-bold text-white group-hover:text-indigo-400 transition-colors break-words leading-snug">
         {task.title}
       </h4>
 
+      {/* FULL DESCRIPTION - NO CUTOFF */}
       {task.description && (
-        <p className="text-[11px] text-gray-400 line-clamp-2 leading-relaxed">
+        <p className="text-[11px] text-gray-300 break-words leading-relaxed whitespace-pre-wrap">
           {task.description}
         </p>
       )}
 
       <div className="flex items-center justify-between pt-2 border-t border-gray-850 text-[10px]">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-wrap">
           {task.deadline && (
             <span
               className={`flex items-center gap-1 font-bold px-1.5 py-0.5 rounded border ${
@@ -940,7 +930,7 @@ function DraggableTaskCard({
 }
 
 // ─────────────────────────────────────────
-// Subcomponent: CalendarGrid
+// Subcomponent: CalendarGrid (Responsive)
 // ─────────────────────────────────────────
 function CalendarGrid({
   tasks,
@@ -962,7 +952,7 @@ function CalendarGrid({
 
   const firstDayOfMonth = new Date(year, month, 1)
   const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const startDay = firstDayOfMonth.getDay() // 0 = Sun
+  const startDay = firstDayOfMonth.getDay()
 
   const daysArray = []
   for (let i = 0; i < startDay; i++) {
@@ -978,51 +968,48 @@ function CalendarGrid({
   ]
 
   return (
-    <div className="bg-[#181818] border border-gray-800 rounded-xl p-4 space-y-4">
-      {/* Calendar Month Header */}
+    <div className="bg-[#181818] border border-gray-800 rounded-xl p-3 sm:p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-white flex items-center gap-2">
+        <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
           <CalendarIcon className="w-4 h-4 text-indigo-400" />
           {monthNames[month]} {year}
         </h3>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={() => onChangeMonth(new Date(year, month - 1, 1))}
-            className="p-1.5 bg-[#202020] hover:bg-gray-800 border border-gray-700 rounded text-gray-300 hover:text-white cursor-pointer"
+            className="p-1 bg-[#202020] hover:bg-gray-800 border border-gray-700 rounded text-gray-300 cursor-pointer"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => onChangeMonth(new Date())}
-            className="px-3 py-1 bg-[#202020] hover:bg-gray-800 border border-gray-700 rounded text-xs font-bold text-indigo-400 hover:text-indigo-300 cursor-pointer"
+            className="px-2.5 py-1 bg-[#202020] hover:bg-gray-800 border border-gray-700 rounded text-[11px] font-bold text-indigo-400 cursor-pointer"
           >
             Bulan Ini
           </button>
           <button
             onClick={() => onChangeMonth(new Date(year, month + 1, 1))}
-            className="p-1.5 bg-[#202020] hover:bg-gray-800 border border-gray-700 rounded text-gray-300 hover:text-white cursor-pointer"
+            className="p-1 bg-[#202020] hover:bg-gray-800 border border-gray-700 rounded text-gray-300 cursor-pointer"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Weekdays */}
-      <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-gray-500 border-b border-gray-800 pb-2">
-        <span>Minggu</span>
-        <span>Senin</span>
-        <span>Selasa</span>
-        <span>Rabu</span>
-        <span>Kamis</span>
-        <span>Jumat</span>
-        <span>Sabtu</span>
+      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-500 border-b border-gray-800 pb-1.5">
+        <span>Min</span>
+        <span>Sen</span>
+        <span>Sel</span>
+        <span>Rab</span>
+        <span>Kam</span>
+        <span>Jum</span>
+        <span>Sab</span>
       </div>
 
-      {/* Month Days Grid */}
-      <div className="grid grid-cols-7 gap-1.5">
+      <div className="grid grid-cols-7 gap-1">
         {daysArray.map((dateObj, idx) => {
           if (!dateObj) {
-            return <div key={`empty-${idx}`} className="h-24 bg-[#141414]/50 rounded-lg" />
+            return <div key={`empty-${idx}`} className="h-16 sm:h-24 bg-[#141414]/50 rounded" />
           }
 
           const dateStr = dateObj.toISOString().split('T')[0]
@@ -1032,34 +1019,32 @@ function CalendarGrid({
           return (
             <div
               key={dateStr}
-              className={`h-24 bg-[#202020] border p-1.5 rounded-lg flex flex-col justify-between overflow-hidden transition-colors ${
-                isToday ? 'border-indigo-500 bg-indigo-500/5' : 'border-gray-850 hover:border-gray-700'
+              className={`h-16 sm:h-24 bg-[#202020] border p-1 rounded flex flex-col justify-between overflow-hidden ${
+                isToday ? 'border-indigo-500 bg-indigo-500/10' : 'border-gray-850'
               }`}
             >
-              <div className="flex items-center justify-between text-[11px] font-bold">
-                <span className={isToday ? 'text-indigo-400 bg-indigo-500/20 px-1.5 rounded' : 'text-gray-400'}>
+              <div className="flex items-center justify-between text-[10px] font-bold">
+                <span className={isToday ? 'text-indigo-400 font-extrabold' : 'text-gray-400'}>
                   {dateObj.getDate()}
                 </span>
                 {dayTasks.length > 0 && (
-                  <span className="text-[9px] bg-gray-800 text-gray-400 px-1 rounded">
+                  <span className="text-[8px] bg-indigo-600 text-white px-1 rounded-full font-bold">
                     {dayTasks.length}
                   </span>
                 )}
               </div>
 
-              <div className="space-y-1 overflow-y-auto scrollbar-none flex-1 mt-1">
+              <div className="space-y-0.5 overflow-y-auto scrollbar-none flex-1 mt-0.5">
                 {dayTasks.map((t) => {
-                  const taskType = taskTypes.find((tt) => tt.id === t.type_id)
                   const status = statuses.find((s) => s.id === t.status_id)
                   return (
                     <div
                       key={t.id}
                       onClick={() => onTaskClick(t)}
-                      className="px-1.5 py-0.5 rounded text-[9px] font-bold truncate cursor-pointer hover:opacity-80 transition-opacity"
+                      className="px-1 py-0.5 rounded text-[8px] font-bold break-words cursor-pointer hover:opacity-80 leading-tight"
                       style={{
                         backgroundColor: status?.color ? `${status.color}35` : '#6366f135',
                         color: status?.color || '#a5b4fc',
-                        borderLeft: `2px solid ${taskType?.color || status?.color || '#6366f1'}`,
                       }}
                       title={t.title}
                     >
