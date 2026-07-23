@@ -1,24 +1,34 @@
 @import "tailwindcss";
 
 :root {
-  --background: #121212;
-  --foreground: #f3f4f6;
+  --bg-primary: #121212;
+  --bg-card: #181818;
+  --bg-card-subtle: #202020;
+  --bg-input: #202020;
+  --border-color: #262626;
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
   --font-sans: var(--font-poppins), system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+html.light {
+  --bg-primary: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #f1f5f9;
+  --bg-input: #ffffff;
+  --border-color: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
 }
 
 body {
-  background-color: #121212;
-  color: #f3f4f6;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   font-family: var(--font-sans);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Eliminate shadows and glowing effects from inputs and focus rings globally */
+/* Eliminate shadows and glowing effects from inputs and focus rings globally (Flat UI) */
 *:focus {
   outline: none !important;
   box-shadow: none !important;
@@ -36,3 +46,12 @@ input, select, textarea {
 .backdrop-blur-sm, .backdrop-blur-md, .backdrop-blur-lg, .backdrop-blur {
   backdrop-filter: none !important;
 }
+
+/* Utility classes for Theme variables */
+.bg-var-primary { background-color: var(--bg-primary); }
+.bg-var-card { background-color: var(--bg-card); }
+.bg-var-card-subtle { background-color: var(--bg-card-subtle); }
+.bg-var-input { background-color: var(--bg-input); }
+.border-var-border { border-color: var(--border-color); }
+.text-var-primary { color: var(--text-primary); }
+.text-var-secondary { color: var(--text-secondary); }

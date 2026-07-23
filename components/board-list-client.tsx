@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 import { createBoard } from '@/lib/actions/board'
-import { moveTask, updateTask, deleteTask } from '@/lib/actions/task'
-import { createAttachment, deleteAttachment } from '@/lib/actions/attachment'
+import { moveTask } from '@/lib/actions/task'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, X, Folder, Calendar, ArrowRight, Paintbrush, Layers, Clock, Paperclip, User, Trash2 } from 'lucide-react'
+import { Plus, X, Folder, Calendar, ArrowRight, Paintbrush, Layers, User } from 'lucide-react'
 import MultiViewWorkspace, {
   Board,
   Status,
@@ -81,17 +80,17 @@ export default function BoardListClient({
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {/* ── 1. BOARDS GRID SECTION ── */}
       <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-sm font-bold text-white flex items-center gap-2">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-sm font-bold text-var-primary flex items-center gap-2">
             <Folder className="w-4 h-4 text-indigo-400" />
             Daftar Board Projects ({initialBoards.length})
           </h2>
           <button
             onClick={() => setIsOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white text-xs font-bold rounded-lg transition-all cursor-pointer border border-indigo-700"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white text-xs font-bold rounded-lg transition-all cursor-pointer border border-indigo-700"
           >
             <Plus className="w-4 h-4" />
             Buat Board Baru
@@ -99,23 +98,23 @@ export default function BoardListClient({
         </div>
 
         {initialBoards.length === 0 ? (
-          <div className="bg-[#181818] border border-gray-850 rounded-xl p-12 text-center max-w-lg mx-auto my-6">
-            <div className="w-14 h-14 bg-[#202020] border border-gray-800 text-indigo-400 rounded-lg flex items-center justify-center mx-auto mb-4 text-xl">
+          <div className="bg-var-card border border-var-border rounded-xl p-10 text-center max-w-lg mx-auto my-4">
+            <div className="w-12 h-12 bg-var-card-subtle border border-var-border text-indigo-400 rounded-lg flex items-center justify-center mx-auto mb-3 text-xl">
               📋
             </div>
-            <h3 className="text-base font-bold text-white mb-2">Belum ada Board</h3>
-            <p className="text-xs text-gray-400 mb-6">
+            <h3 className="text-sm font-bold text-var-primary mb-1">Belum ada Board</h3>
+            <p className="text-xs text-var-secondary mb-4">
               Buat board baru untuk mulai mengelola tugas dan anggota projek Anda.
             </p>
             <button
               onClick={() => setIsOpen(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-all cursor-pointer border border-indigo-700 text-xs"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-all cursor-pointer border border-indigo-700 text-xs"
             >
               <Plus className="w-4 h-4" /> Buat Board Pertama
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {initialBoards.map((board) => {
               const boardTasksCount = allTasks.filter((t) => t.board_id === board.id).length
 
@@ -123,7 +122,7 @@ export default function BoardListClient({
                 <Link
                   href={`/boards/${board.id}`}
                   key={board.id}
-                  className="group block relative bg-[#181818] border border-gray-850 hover:border-gray-700 rounded-xl p-5 transition-all overflow-hidden"
+                  className="group block relative bg-var-card border border-var-border hover:border-gray-600 rounded-xl p-4.5 transition-all overflow-hidden"
                 >
                   <div
                     className="absolute top-0 left-0 right-0 h-1"
@@ -132,25 +131,25 @@ export default function BoardListClient({
 
                   <div className="flex items-center justify-between mb-3">
                     <div
-                      className="w-9 h-9 rounded flex items-center justify-center border border-gray-850"
+                      className="w-8 h-8 rounded flex items-center justify-center border border-var-border"
                       style={{ backgroundColor: `${board.color}15` }}
                     >
                       <Folder className="w-4 h-4" style={{ color: board.color }} />
                     </div>
-                    <span className="text-[10px] text-gray-400 font-bold bg-[#222222] px-2 py-0.5 rounded border border-gray-800">
+                    <span className="text-[10px] text-var-secondary font-bold bg-var-card-subtle px-2 py-0.5 rounded border border-var-border">
                       {boardTasksCount} Tugas
                     </span>
                   </div>
 
-                  <h3 className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors line-clamp-1 mb-1.5">
+                  <h3 className="text-sm font-bold text-var-primary group-hover:text-indigo-400 transition-colors line-clamp-1 mb-1">
                     {board.name}
                   </h3>
 
-                  <p className="text-xs text-gray-400 line-clamp-2 min-h-[2.25rem]">
+                  <p className="text-xs text-var-secondary line-clamp-2 min-h-[2.25rem]">
                     {board.description || 'Tidak ada deskripsi.'}
                   </p>
 
-                  <div className="mt-4 pt-3 border-t border-gray-850 flex items-center justify-between text-[10px] font-bold text-gray-400 group-hover:text-white transition-colors">
+                  <div className="mt-3.5 pt-2.5 border-t border-var-border flex items-center justify-between text-[10px] font-bold text-var-secondary group-hover:text-var-primary transition-colors">
                     <span>Buka Workspace Board</span>
                     <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
                   </div>
@@ -162,14 +161,14 @@ export default function BoardListClient({
       </div>
 
       {/* ── 2. DASHBOARD ALL TASKS MULTI-VIEW WORKSPACE ── */}
-      <div className="pt-4 border-t border-gray-800">
+      <div className="pt-4 border-t border-var-border">
         <div className="mb-4">
-          <h2 className="text-base font-bold text-white flex items-center gap-2">
+          <h2 className="text-sm font-bold text-var-primary flex items-center gap-2">
             <Layers className="w-4 h-4 text-indigo-400" />
             Semua Tugas Lintas Project
           </h2>
-          <p className="text-xs text-gray-400 mt-1">
-            Melihat seluruh gambaran tugas dari seluruh board dalam bentuk Kanban, List, Kalender, dan Tabel.
+          <p className="text-xs text-var-secondary mt-0.5">
+            Melihat seluruh gambaran tugas dalam bentuk Kanban, List, Kalender, dan Tabel.
           </p>
         </div>
 
@@ -198,12 +197,12 @@ export default function BoardListClient({
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60" onClick={() => setIsOpen(false)} />
-          <div className="relative w-full max-w-md bg-[#181818] border border-gray-800 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-5 pb-2 border-b border-gray-850">
-              <h3 className="text-sm font-bold text-white">Buat Board Baru</h3>
+          <div className="relative w-full max-w-md bg-var-card border border-var-border rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-var-border">
+              <h3 className="text-sm font-bold text-var-primary">Buat Board Baru</h3>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1 hover:bg-gray-800 rounded text-gray-400 hover:text-white transition-colors cursor-pointer"
+                className="p-1 hover:bg-var-card-subtle rounded text-var-secondary hover:text-var-primary cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -217,28 +216,28 @@ export default function BoardListClient({
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-300 mb-1.5">Nama Board</label>
+                <label className="block text-xs font-bold text-var-secondary mb-1">Nama Board</label>
                 <input
                   type="text"
                   name="name"
                   required
                   placeholder="Contoh: Projek Dekorasi"
-                  className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 text-sm focus:border-indigo-500"
+                  className="w-full px-4 py-2.5 bg-var-input border border-var-border rounded-lg text-var-primary placeholder-gray-500 text-sm focus:border-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-300 mb-1.5">Deskripsi</label>
+                <label className="block text-xs font-bold text-var-secondary mb-1">Deskripsi</label>
                 <textarea
                   name="description"
                   rows={3}
                   placeholder="Penjelasan singkat tentang projek..."
-                  className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 text-sm focus:border-indigo-500 resize-none"
+                  className="w-full px-4 py-2.5 bg-var-input border border-var-border rounded-lg text-var-primary placeholder-gray-500 text-sm focus:border-indigo-500 resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-300 mb-2 flex items-center gap-1.5">
+                <label className="block text-xs font-bold text-var-secondary mb-2 flex items-center gap-1.5">
                   <Paintbrush className="w-4 h-4 text-indigo-400" />
                   Warna Tema Board
                 </label>
@@ -249,7 +248,7 @@ export default function BoardListClient({
                       type="button"
                       onClick={() => setSelectedColor(c)}
                       className={`w-7 h-7 rounded-full border transition-all cursor-pointer ${
-                        selectedColor === c ? 'border-white scale-105' : 'border-transparent opacity-80 hover:opacity-100'
+                        selectedColor === c ? 'border-indigo-500 scale-105' : 'border-transparent opacity-80'
                       }`}
                       style={{ backgroundColor: c }}
                     />
@@ -257,11 +256,11 @@ export default function BoardListClient({
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-850">
+              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-var-border">
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="text-xs text-gray-400 hover:text-white font-bold cursor-pointer"
+                  className="text-xs text-var-secondary hover:text-var-primary font-bold cursor-pointer"
                 >
                   Batal
                 </button>
@@ -282,15 +281,15 @@ export default function BoardListClient({
       {isTaskModalOpen && selectedTask && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70" onClick={() => setIsTaskModalOpen(false)} />
-          <div className="relative w-full max-w-lg bg-[#181818] border border-gray-800 rounded-xl p-6">
-            <div className="flex items-start justify-between mb-4 pb-3 border-b border-gray-800">
+          <div className="relative w-full max-w-lg bg-var-card border border-var-border rounded-xl p-5 sm:p-6">
+            <div className="flex items-start justify-between mb-4 pb-3 border-b border-var-border">
               <div>
                 <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Detail Tugas</span>
-                <h3 className="text-base font-bold text-white mt-1">{selectedTask.title}</h3>
+                <h3 className="text-base font-bold text-var-primary mt-1 break-words">{selectedTask.title}</h3>
               </div>
               <button
                 onClick={() => setIsTaskModalOpen(false)}
-                className="p-1 hover:bg-gray-800 rounded text-gray-400 hover:text-white"
+                className="p-1 hover:bg-var-card-subtle rounded text-var-secondary hover:text-var-primary"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -298,13 +297,28 @@ export default function BoardListClient({
 
             <div className="space-y-4 text-xs">
               <div>
-                <h4 className="font-bold text-gray-400 mb-1">Deskripsi</h4>
-                <p className="text-gray-300 bg-[#121212] p-3 rounded border border-gray-850">
+                <h4 className="font-bold text-var-secondary mb-1">Deskripsi</h4>
+                <p className="text-var-primary bg-var-primary p-3 rounded border border-var-border break-words whitespace-pre-wrap">
                   {selectedTask.description || 'Tidak ada deskripsi.'}
                 </p>
               </div>
 
-              <div className="flex items-center justify-between pt-2">
+              {/* Show Full Assignee Name in Detail Modal */}
+              {selectedTask.assignee_id && (
+                <div>
+                  <h4 className="font-bold text-var-secondary mb-1">Ditugaskan Ke:</h4>
+                  {(() => {
+                    const m = members.find((mem) => mem.id === selectedTask.assignee_id)
+                    return m ? (
+                      <span className="font-bold text-indigo-400 flex items-center gap-1.5 text-xs">
+                        <User className="w-3.5 h-3.5" /> {m.name}
+                      </span>
+                    ) : null
+                  })()}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-3 border-t border-var-border">
                 <Link
                   href={`/boards/${selectedTask.board_id}`}
                   className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-xs"
@@ -313,7 +327,7 @@ export default function BoardListClient({
                 </Link>
                 <button
                   onClick={() => setIsTaskModalOpen(false)}
-                  className="text-gray-400 hover:text-white"
+                  className="text-var-secondary hover:text-var-primary font-bold"
                 >
                   Tutup
                 </button>

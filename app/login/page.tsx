@@ -2,19 +2,24 @@
 
 import { useActionState } from 'react'
 import { login } from '@/lib/actions/auth'
+import ThemeToggle from '@/components/theme-toggle'
 
 export default function LoginPage() {
   const [state, formAction, isPending] = useActionState(login, undefined)
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#121212] text-gray-200 p-4">
-      <div className="w-full max-w-md bg-[#181818] border border-gray-800 p-8 rounded-xl">
+    <main className="min-h-screen flex flex-col items-center justify-center bg-var-primary text-var-primary p-4 relative transition-colors">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+
+      <div className="w-full max-w-md bg-var-card border border-var-border p-8 rounded-xl">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-white mb-2">
+          <h1 className="text-2xl font-bold text-var-primary mb-2">
             Sans Ngatur
           </h1>
-          <p className="text-xs text-gray-400">
-            Masuk ke akun Anda untuk melanjutkan
+          <p className="text-xs text-var-secondary">
+            Santai ngerjain, tetep rapi ngaturnya.
           </p>
         </div>
 
@@ -28,7 +33,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="email"
-              className="block text-xs font-bold text-gray-300 mb-1.5"
+              className="block text-xs font-bold text-var-secondary mb-1.5"
             >
               Email
             </label>
@@ -38,14 +43,14 @@ export default function LoginPage() {
               type="email"
               required
               placeholder="nama@email.com"
-              className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 text-sm focus:border-indigo-500"
+              className="w-full px-4 py-2.5 bg-var-input border border-var-border rounded-lg text-var-primary placeholder-gray-500 text-sm focus:border-indigo-500"
             />
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="block text-xs font-bold text-gray-300 mb-1.5"
+              className="block text-xs font-bold text-var-secondary mb-1.5"
             >
               Password
             </label>
@@ -55,7 +60,7 @@ export default function LoginPage() {
               type="password"
               required
               placeholder="••••••••"
-              className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 text-sm focus:border-indigo-500"
+              className="w-full px-4 py-2.5 bg-var-input border border-var-border rounded-lg text-var-primary placeholder-gray-500 text-sm focus:border-indigo-500"
             />
           </div>
 

@@ -38,6 +38,7 @@ import MultiViewWorkspace, {
   Task,
   Attachment,
 } from './multi-view-workspace'
+import ThemeToggle from './theme-toggle'
 
 export default function BoardDetailsClient({
   board,
@@ -363,6 +364,8 @@ export default function BoardDetailsClient({
         </div>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
+
           <button
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
             className={`flex items-center gap-1.5 px-3 py-2 border rounded-lg text-xs font-bold transition-all cursor-pointer ${
