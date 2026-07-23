@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient as createBrowserClient } from '@/lib/supabase/client'
 import {
@@ -16,13 +16,8 @@ import { createAttachment, deleteAttachment } from '@/lib/actions/attachment'
 import {
   Plus,
   X,
-  Calendar,
-  User,
-  Tag,
   Paperclip,
   Trash2,
-  ChevronLeft,
-  ChevronRight,
   Settings,
   Users,
   Layers,
@@ -30,80 +25,20 @@ import {
   Clock,
   Upload,
   Link as LinkIcon,
-  CheckCircle,
   AlertCircle,
   Pencil,
   Check,
 } from 'lucide-react'
 import Link from 'next/link'
+import MultiViewWorkspace, {
+  Board,
+  Status,
+  TaskType,
+  Member,
+  Task,
+  Attachment,
+} from './multi-view-workspace'
 
-// ─────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────
-type Board = {
-  id: string
-  name: string
-  description: string | null
-  color: string
-}
-
-type Status = {
-  id: string
-  name: string
-  color: string
-  sort_order: number
-  is_final: boolean
-}
-
-type TaskType = {
-  id: string
-  name: string
-  color: string
-}
-
-type Member = {
-  id: string
-  name: string
-  color: string
-}
-
-type Task = {
-  id: string
-  board_id: string
-  title: string
-  description: string | null
-  status_id: string | null
-  type_id: string | null
-  assignee_id: string | null
-  deadline: string | null
-  position: number
-  created_at: string
-  updated_at: string
-}
-
-type Attachment = {
-  id: string
-  task_id: string
-  kind: string
-  url: string
-  label: string | null
-}
-
-// ─────────────────────────────────────────
-// Utility
-// ─────────────────────────────────────────
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .substring(0, 2)
-}
-
-// ─────────────────────────────────────────
-// Main Component
-// ─────────────────────────────────────────
 export default function BoardDetailsClient({
   board,
   statuses,
@@ -121,67 +56,50 @@ export default function BoardDetailsClient({
 }) {
   const router = useRouter()
 
-  // ── Selected / modal states ──────────────
+  // Selected task & settings drawer states
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
-  // ── Modal visibility states ──────────────
+  // Modal creation states
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false)
   const [newTaskStatusId, setNewTaskStatusId] = useState<string | null>(null)
   const [isNewStatusOpen, setIsNewStatusOpen] = useState(false)
   const [isNewMemberOpen, setIsNewMemberOpen] = useState(false)
   const [isNewTaskTypeOpen, setIsNewTaskTypeOpen] = useState(false)
 
-  // ── Per-form pending states (FIX: was a single shared isPending) ──
+  // Per-form pending states
   const [isCreatingTask, setIsCreatingTask] = useState(false)
   const [isCreatingStatus, setIsCreatingStatus] = useState(false)
   const [isCreatingMember, setIsCreatingMember] = useState(false)
   const [isCreatingTaskType, setIsCreatingTaskType] = useState(false)
 
-  // ── Form error states ────────────────────
+  // Form errors
   const [taskError, setTaskError] = useState<string | null>(null)
   const [statusError, setStatusError] = useState<string | null>(null)
   const [memberError, setMemberError] = useState<string | null>(null)
   const [taskTypeError, setTaskTypeError] = useState<string | null>(null)
 
-  // ── Attachment states ────────────────────
+  // Attachment states
   const [attachmentUrl, setAttachmentUrl] = useState('')
   const [attachmentLabel, setAttachmentLabel] = useState('')
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [isAddingLink, setIsAddingLink] = useState(false)
-
-  // ── Local attachment state (FIX: updates without full page reload) ──
   const [localAttachments, setLocalAttachments] = useState<Attachment[]>(initialAttachments)
 
-  // ── Inline edit states for task detail modal ──
+  // Inline edits
   const [editingTitle, setEditingTitle] = useState(false)
   const [editTitleValue, setEditTitleValue] = useState('')
   const [editingDescription, setEditingDescription] = useState(false)
   const [editDescriptionValue, setEditDescriptionValue] = useState('')
 
-  // ── Derive selected task attachments from local state ──
   const selectedTaskAttachments = selectedTask
     ? localAttachments.filter((a) => a.task_id === selectedTask.id)
     : []
 
   // ─────────────────────────────────────────
-  // Group tasks by status
-  // ─────────────────────────────────────────
-  const tasksByStatus: Record<string, Task[]> = {}
-  statuses.forEach((s) => {
-    tasksByStatus[s.id] = initialTasks
-      .filter((t) => t.status_id === s.id)
-      .sort((a, b) => a.position - b.position)
-  })
-
-  const unassignedTasks = initialTasks
-    .filter((t) => !t.status_id)
-    .sort((a, b) => a.position - b.position)
-
-  // ─────────────────────────────────────────
-  // Task Handlers
+  // Handlers
   // ─────────────────────────────────────────
   async function handleCreateTask(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -214,36 +132,7 @@ export default function BoardDetailsClient({
     }
   }
 
-  async function handleUpdateTaskField(
-    taskId: string,
-    updates: Partial<Task>
-  ) {
-    await updateTask(board.id, taskId, updates)
-    router.refresh()
-  }
-
-  async function handleMoveTask(
-    taskId: string,
-    direction: 'left' | 'right',
-    currentStatusId: string | null
-  ) {
-    const currentIndex = statuses.findIndex((s) => s.id === currentStatusId)
-    let targetStatusId: string | null = null
-
-    if (direction === 'left') {
-      if (currentIndex > 0) {
-        targetStatusId = statuses[currentIndex - 1].id
-      } else if (currentIndex === 0) {
-        targetStatusId = null
-      }
-    } else {
-      if (currentStatusId === null && statuses.length > 0) {
-        targetStatusId = statuses[0].id
-      } else if (currentIndex < statuses.length - 1) {
-        targetStatusId = statuses[currentIndex + 1].id
-      }
-    }
-
+  async function handleMoveTask(taskId: string, targetStatusId: string | null) {
     const siblingTasks = targetStatusId
       ? initialTasks.filter((t) => t.status_id === targetStatusId)
       : initialTasks.filter((t) => !t.status_id)
@@ -254,6 +143,11 @@ export default function BoardDetailsClient({
         : 1
 
     await moveTask(board.id, taskId, targetStatusId, newPosition)
+    router.refresh()
+  }
+
+  async function handleUpdateTaskField(taskId: string, updates: Partial<Task>) {
+    await updateTask(board.id, taskId, updates)
     router.refresh()
   }
 
@@ -268,7 +162,6 @@ export default function BoardDetailsClient({
     }
   }
 
-  // Inline title edit
   async function handleSaveTitle() {
     if (!selectedTask || !editTitleValue.trim()) return
     const updated = { ...selectedTask, title: editTitleValue.trim() }
@@ -277,7 +170,6 @@ export default function BoardDetailsClient({
     await handleUpdateTaskField(selectedTask.id, { title: editTitleValue.trim() })
   }
 
-  // Inline description edit
   async function handleSaveDescription() {
     if (!selectedTask) return
     const val = editDescriptionValue.trim() || null
@@ -287,9 +179,6 @@ export default function BoardDetailsClient({
     await handleUpdateTaskField(selectedTask.id, { description: val })
   }
 
-  // ─────────────────────────────────────────
-  // Master Data Handlers
-  // ─────────────────────────────────────────
   async function handleCreateStatus(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setStatusError(null)
@@ -348,9 +237,6 @@ export default function BoardDetailsClient({
     }
   }
 
-  // ─────────────────────────────────────────
-  // Attachment Handlers
-  // ─────────────────────────────────────────
   async function handleAddLinkAttachment() {
     if (!selectedTask || !attachmentUrl.trim()) return
     setIsAddingLink(true)
@@ -363,7 +249,6 @@ export default function BoardDetailsClient({
     )
     setIsAddingLink(false)
     if (!res?.error) {
-      // Optimistically add to local state
       const newAttachment: Attachment = {
         id: `temp-${Date.now()}`,
         task_id: selectedTask.id,
@@ -383,8 +268,6 @@ export default function BoardDetailsClient({
     if (!file || !selectedTask) return
 
     setUploadError(null)
-
-    // Check 10MB size limit
     const maxLimit = 10 * 1024 * 1024
     if (file.size > maxLimit) {
       setUploadError(`Ukuran file (${(file.size / 1024 / 1024).toFixed(1)} MB) melebihi batas maksimal 10 MB!`)
@@ -411,13 +294,11 @@ export default function BoardDetailsClient({
         data: { publicUrl },
       } = supabase.storage.from('attachments').getPublicUrl(filePath)
 
-      // FIX: Pass kind='file' explicitly
       const res = await createAttachment(board.id, selectedTask.id, publicUrl, file.name, 'file')
       if (res?.error) {
         throw new Error(res.error)
       }
 
-      // Optimistically update local state (FIX: was not updating local attachments)
       const newAttachment: Attachment = {
         id: `temp-${Date.now()}`,
         task_id: selectedTask.id,
@@ -426,33 +307,36 @@ export default function BoardDetailsClient({
         label: file.name,
       }
       setLocalAttachments((prev) => [...prev, newAttachment])
-
       e.target.value = ''
       router.refresh()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Gagal mengunggah file.'
       setUploadError(msg)
-      e.target.value = '' // FIX: always reset input even on error
+      e.target.value = ''
     } finally {
       setIsUploading(false)
     }
   }
 
   async function handleDeleteAttachment(id: string) {
-    // Optimistically remove from local state
     setLocalAttachments((prev) => prev.filter((a) => a.id !== id))
     const res = await deleteAttachment(board.id, id)
     if (res?.error) {
-      // Rollback on failure
       setLocalAttachments(initialAttachments)
     } else {
       router.refresh()
     }
   }
 
-  // ─────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────
+  function getInitials(name: string): string {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2)
+  }
+
   return (
     <div className="min-h-screen bg-[#121212] text-gray-200">
       {/* ── Board Header ── */}
@@ -473,7 +357,7 @@ export default function BoardDetailsClient({
               <h1 className="text-base font-bold text-white leading-tight">{board.name}</h1>
             </div>
             {board.description && (
-              <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">{board.description}</p>
+              <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-1">{board.description}</p>
             )}
           </div>
         </div>
@@ -505,82 +389,34 @@ export default function BoardDetailsClient({
         </div>
       </header>
 
-      {/* ── Main Workspace ── */}
-      <div className="flex relative overflow-hidden h-[calc(100vh-65px)]">
-        {/* Kanban Board */}
-        <main className="flex-1 overflow-x-auto p-4 md:p-6 flex gap-4 items-start h-full">
-
-          {/* Unassigned column */}
-          {unassignedTasks.length > 0 && (
-            <KanbanColumn
-              id="unassigned"
-              title="Belum Ditugaskan"
-              color="#6b7280"
-              tasks={unassignedTasks}
-              members={members}
-              taskTypes={taskTypes}
-              localAttachments={localAttachments}
-              onTaskClick={(task) => {
-                setSelectedTask(task)
-                setIsTaskModalOpen(true)
-                setUploadError(null)
-              }}
-              onMove={(taskId, dir) => handleMoveTask(taskId, dir, null)}
-              isFirst={true}
-              isLast={statuses.length === 0}
-              onAddTask={() => {
-                setNewTaskStatusId(null)
-                setTaskError(null)
-                setIsNewTaskOpen(true)
-              }}
-            />
-          )}
-
-          {/* Status Columns */}
-          {statuses.map((status, index) => {
-            const columnTasks = tasksByStatus[status.id] || []
-            return (
-              <KanbanColumn
-                key={status.id}
-                id={status.id}
-                title={status.name}
-                color={status.color}
-                tasks={columnTasks}
-                members={members}
-                taskTypes={taskTypes}
-                localAttachments={localAttachments}
-                onTaskClick={(task) => {
-                  setSelectedTask(task)
-                  setIsTaskModalOpen(true)
-                  setUploadError(null)
-                }}
-                onMove={(taskId, dir) => handleMoveTask(taskId, dir, status.id)}
-                isFirst={index === 0 && unassignedTasks.length === 0}
-                isLast={index === statuses.length - 1}
-                onAddTask={() => {
-                  setNewTaskStatusId(status.id)
-                  setTaskError(null)
-                  setIsNewTaskOpen(true)
-                }}
-              />
-            )
-          })}
-
-          {/* Add Column Button */}
-          <button
-            onClick={() => {
-              setStatusError(null)
-              setIsNewStatusOpen(true)
+      {/* ── Main Workspace Content ── */}
+      <div className="flex relative overflow-hidden">
+        <main className="flex-1 p-4 md:p-6 overflow-y-auto">
+          <MultiViewWorkspace
+            tasks={initialTasks}
+            statuses={statuses}
+            taskTypes={taskTypes}
+            members={members}
+            boards={[board]}
+            attachments={localAttachments}
+            currentBoardId={board.id}
+            onMoveTask={handleMoveTask}
+            onTaskClick={(task) => {
+              setSelectedTask(task)
+              setIsTaskModalOpen(true)
+              setUploadError(null)
             }}
-            className="w-72 flex-shrink-0 h-12 border border-dashed border-gray-800 hover:border-indigo-500/50 hover:bg-[#1a1a1a] rounded-xl flex items-center justify-center gap-2 text-xs font-bold text-gray-500 hover:text-indigo-400 transition-all cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" /> Tambah Kolom
-          </button>
+            onAddTask={(statusId) => {
+              setNewTaskStatusId(statusId)
+              setTaskError(null)
+              setIsNewTaskOpen(true)
+            }}
+          />
         </main>
 
-        {/* Right Settings Sidebar */}
+        {/* Master Data Settings Sidebar Drawer */}
         {isSettingsOpen && (
-          <aside className="w-72 md:w-80 bg-[#161616] border-l border-gray-800 p-5 overflow-y-auto flex flex-col h-full flex-shrink-0">
+          <aside className="w-72 md:w-80 bg-[#161616] border-l border-gray-800 p-5 overflow-y-auto flex flex-col h-[calc(100vh-65px)] flex-shrink-0">
             <div className="flex items-center justify-between mb-5 pb-2 border-b border-gray-800">
               <h2 className="text-xs font-bold text-white flex items-center gap-1.5">
                 <Settings className="w-3.5 h-3.5 text-indigo-400" />
@@ -646,9 +482,7 @@ export default function BoardDetailsClient({
                   </div>
                 ))}
                 {members.length === 0 && (
-                  <p className="text-[11px] text-gray-600 italic">
-                    Belum ada anggota di projek ini.
-                  </p>
+                  <p className="text-[11px] text-gray-600 italic">Belum ada anggota di projek ini.</p>
                 )}
               </div>
             </div>
@@ -706,7 +540,7 @@ export default function BoardDetailsClient({
               </div>
             </div>
 
-            {/* Columns / Statuses Section */}
+            {/* Status Columns Section */}
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-[11px] font-bold text-gray-300 uppercase tracking-wider">
@@ -739,11 +573,7 @@ export default function BoardDetailsClient({
                     </div>
                     <button
                       onClick={async () => {
-                        if (
-                          confirm(
-                            `Hapus kolom "${s.name}"? Tugas di dalamnya akan kehilangan statusnya.`
-                          )
-                        ) {
+                        if (confirm(`Hapus kolom "${s.name}"? Tugas di dalamnya akan menjadi unassigned.`)) {
                           await deleteStatus(board.id, s.id)
                           router.refresh()
                         }
@@ -763,14 +593,14 @@ export default function BoardDetailsClient({
         )}
       </div>
 
-      {/* ══════════════════════════════════════
-          MODAL: Create New Task
-      ══════════════════════════════════════ */}
+      {/* ── MODALS (Task, Status, Member, TaskType, Detail) ── */}
       {isNewTaskOpen && (
         <Modal onClose={() => setIsNewTaskOpen(false)}>
           <div className="flex items-center justify-between mb-5 pb-2 border-b border-gray-800">
             <h3 className="text-sm font-bold text-white">Buat Tugas Baru</h3>
-            <CloseBtn onClick={() => setIsNewTaskOpen(false)} />
+            <button onClick={() => setIsNewTaskOpen(false)} className="text-gray-400 hover:text-white">
+              <X className="w-4 h-4" />
+            </button>
           </div>
 
           {taskError && <ErrorAlert message={taskError} />}
@@ -785,7 +615,7 @@ export default function BoardDetailsClient({
                 name="title"
                 required
                 placeholder="Judul/Nama tugas..."
-                className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-white placeholder-gray-500 text-sm"
+                className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-white text-sm"
               />
             </div>
 
@@ -795,7 +625,7 @@ export default function BoardDetailsClient({
                 name="description"
                 rows={3}
                 placeholder="Detail tugas..."
-                className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-white placeholder-gray-500 text-sm resize-none"
+                className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-white text-sm resize-none"
               />
             </div>
 
@@ -850,7 +680,7 @@ export default function BoardDetailsClient({
               <button
                 type="submit"
                 disabled={isCreatingTask}
-                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-lg text-xs font-bold cursor-pointer border border-indigo-700 disabled:opacity-50"
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold cursor-pointer border border-indigo-700 disabled:opacity-50"
               >
                 {isCreatingTask ? 'Menyimpan...' : 'Simpan Tugas'}
               </button>
@@ -859,9 +689,7 @@ export default function BoardDetailsClient({
         </Modal>
       )}
 
-      {/* ══════════════════════════════════════
-          MODAL: Create New Status
-      ══════════════════════════════════════ */}
+      {/* Status Modal */}
       {isNewStatusOpen && (
         <Modal onClose={() => setIsNewStatusOpen(false)} maxWidth="max-w-sm">
           <h3 className="text-sm font-bold text-white mb-4 pb-2 border-b border-gray-800">
@@ -876,7 +704,7 @@ export default function BoardDetailsClient({
                 name="name"
                 required
                 placeholder="Contoh: Review"
-                className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-white placeholder-gray-500 text-sm"
+                className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-white text-sm"
               />
             </div>
             <div>
@@ -899,7 +727,7 @@ export default function BoardDetailsClient({
               <button
                 type="submit"
                 disabled={isCreatingStatus}
-                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold cursor-pointer border border-indigo-700 disabled:opacity-50"
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold border border-indigo-700 disabled:opacity-50"
               >
                 {isCreatingStatus ? 'Memproses...' : 'Tambah'}
               </button>
@@ -908,9 +736,7 @@ export default function BoardDetailsClient({
         </Modal>
       )}
 
-      {/* ══════════════════════════════════════
-          MODAL: Create New Member
-      ══════════════════════════════════════ */}
+      {/* Member Modal */}
       {isNewMemberOpen && (
         <Modal onClose={() => setIsNewMemberOpen(false)} maxWidth="max-w-sm">
           <h3 className="text-sm font-bold text-white mb-4 pb-2 border-b border-gray-800">
@@ -925,7 +751,7 @@ export default function BoardDetailsClient({
                 name="name"
                 required
                 placeholder="Nama anggota..."
-                className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-white placeholder-gray-500 text-sm"
+                className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-white text-sm"
               />
             </div>
             <div>
@@ -941,14 +767,14 @@ export default function BoardDetailsClient({
               <button
                 type="button"
                 onClick={() => setIsNewMemberOpen(false)}
-                className="text-xs text-gray-400 hover:text-white cursor-pointer font-bold"
+                className="text-xs text-gray-400 hover:text-white font-bold"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={isCreatingMember}
-                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold cursor-pointer border border-indigo-700 disabled:opacity-50"
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold border border-indigo-700 disabled:opacity-50"
               >
                 {isCreatingMember ? 'Menyimpan...' : 'Tambah'}
               </button>
@@ -957,9 +783,7 @@ export default function BoardDetailsClient({
         </Modal>
       )}
 
-      {/* ══════════════════════════════════════
-          MODAL: Create New Task Type
-      ══════════════════════════════════════ */}
+      {/* Task Type Modal */}
       {isNewTaskTypeOpen && (
         <Modal onClose={() => setIsNewTaskTypeOpen(false)} maxWidth="max-w-sm">
           <h3 className="text-sm font-bold text-white mb-4 pb-2 border-b border-gray-800">
@@ -973,8 +797,8 @@ export default function BoardDetailsClient({
                 type="text"
                 name="name"
                 required
-                placeholder="Contoh: Bug, Feature"
-                className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-white placeholder-gray-500 text-sm"
+                placeholder="Contoh: Desain Grafis"
+                className="w-full px-4 py-2.5 bg-[#202020] border border-gray-700 rounded-lg text-white text-sm"
               />
             </div>
             <div>
@@ -990,14 +814,14 @@ export default function BoardDetailsClient({
               <button
                 type="button"
                 onClick={() => setIsNewTaskTypeOpen(false)}
-                className="text-xs text-gray-400 hover:text-white cursor-pointer font-bold"
+                className="text-xs text-gray-400 hover:text-white font-bold"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={isCreatingTaskType}
-                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold cursor-pointer border border-indigo-700 disabled:opacity-50"
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold border border-indigo-700 disabled:opacity-50"
               >
                 {isCreatingTaskType ? 'Menyimpan...' : 'Tambah'}
               </button>
@@ -1006,9 +830,7 @@ export default function BoardDetailsClient({
         </Modal>
       )}
 
-      {/* ══════════════════════════════════════
-          MODAL: Task Detail
-      ══════════════════════════════════════ */}
+      {/* Task Details Modal */}
       {isTaskModalOpen && selectedTask && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6">
           <div
@@ -1023,7 +845,6 @@ export default function BoardDetailsClient({
           />
 
           <div className="relative w-full max-w-2xl bg-[#181818] border border-gray-800 rounded-xl overflow-y-auto max-h-[94vh] flex flex-col">
-            {/* Modal Header */}
             <div className="flex items-start justify-between p-5 md:p-6 pb-4 border-b border-gray-800 flex-shrink-0">
               <div className="flex-1 pr-4 min-w-0">
                 <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">
@@ -1042,16 +863,10 @@ export default function BoardDetailsClient({
                       }}
                       className="flex-1 bg-[#202020] border border-indigo-500 rounded px-2 py-1 text-sm font-bold text-white"
                     />
-                    <button
-                      onClick={handleSaveTitle}
-                      className="p-1.5 bg-indigo-600 text-white rounded cursor-pointer"
-                    >
+                    <button onClick={handleSaveTitle} className="p-1.5 bg-indigo-600 text-white rounded cursor-pointer">
                       <Check className="w-3.5 h-3.5" />
                     </button>
-                    <button
-                      onClick={() => setEditingTitle(false)}
-                      className="p-1.5 bg-[#252525] text-gray-400 rounded cursor-pointer"
-                    >
+                    <button onClick={() => setEditingTitle(false)} className="p-1.5 bg-[#252525] text-gray-400 rounded cursor-pointer">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -1065,17 +880,18 @@ export default function BoardDetailsClient({
                         setEditTitleValue(selectedTask.title)
                         setEditingTitle(true)
                       }}
-                      className="opacity-0 group-hover/title:opacity-100 p-1 text-gray-500 hover:text-gray-300 rounded cursor-pointer transition-opacity mt-1"
+                      className="opacity-0 group-hover/title:opacity-100 p-1 text-gray-500 hover:text-gray-300 transition-opacity mt-1 cursor-pointer"
                     >
                       <Pencil className="w-3 h-3" />
                     </button>
                   </div>
                 )}
               </div>
+
               <div className="flex items-center gap-2 flex-shrink-0">
                 <button
                   onClick={() => handleDeleteTask(selectedTask.id)}
-                  className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 hover:text-red-300 rounded-lg transition-all cursor-pointer"
+                  className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-lg cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -1087,18 +903,15 @@ export default function BoardDetailsClient({
                     setEditingTitle(false)
                     setEditingDescription(false)
                   }}
-                  className="p-2 hover:bg-gray-800 text-gray-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+                  className="p-2 hover:bg-gray-800 text-gray-400 hover:text-white rounded-lg cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
 
-            {/* Modal Body */}
             <div className="p-5 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-5 overflow-y-auto">
-              {/* Left: Description + Attachments */}
               <div className="md:col-span-2 space-y-5">
-                {/* Description */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-xs font-bold text-gray-300">Deskripsi</h4>
@@ -1118,11 +931,10 @@ export default function BoardDetailsClient({
                     <div className="space-y-2">
                       <textarea
                         autoFocus
-                        rows={5}
+                        rows={4}
                         value={editDescriptionValue}
                         onChange={(e) => setEditDescriptionValue(e.target.value)}
-                        className="w-full px-3 py-2.5 bg-[#202020] border border-indigo-500 rounded-lg text-xs text-gray-200 resize-none"
-                        placeholder="Tulis deskripsi tugas..."
+                        className="w-full px-3 py-2 bg-[#202020] border border-indigo-500 rounded-lg text-xs text-gray-200 resize-none"
                       />
                       <div className="flex gap-2">
                         <button
@@ -1145,7 +957,7 @@ export default function BoardDetailsClient({
                         setEditDescriptionValue(selectedTask.description || '')
                         setEditingDescription(true)
                       }}
-                      className="text-xs text-gray-400 bg-[#121212] p-4 rounded-lg border border-gray-800 whitespace-pre-wrap cursor-text min-h-[60px] hover:border-gray-700 transition-colors"
+                      className="text-xs text-gray-400 bg-[#121212] p-4 rounded-lg border border-gray-800 whitespace-pre-wrap cursor-text min-h-[60px]"
                     >
                       {selectedTask.description || (
                         <span className="text-gray-600 italic">Klik untuk menambah deskripsi...</span>
@@ -1154,14 +966,12 @@ export default function BoardDetailsClient({
                   )}
                 </div>
 
-                {/* Attachments */}
                 <div>
                   <h4 className="text-xs font-bold text-gray-300 mb-2 flex items-center gap-1.5">
                     <Paperclip className="w-3 h-3 text-indigo-400" />
                     Lampiran ({selectedTaskAttachments.length})
                   </h4>
 
-                  {/* Attachment List */}
                   <div className="space-y-1.5 mb-3">
                     {selectedTaskAttachments.map((a) => (
                       <div
@@ -1174,16 +984,12 @@ export default function BoardDetailsClient({
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 text-xs font-medium min-w-0"
                         >
-                          {a.kind === 'file' ? (
-                            <Upload className="w-3 h-3 flex-shrink-0" />
-                          ) : (
-                            <LinkIcon className="w-3 h-3 flex-shrink-0" />
-                          )}
+                          {a.kind === 'file' ? <Upload className="w-3 h-3 flex-shrink-0" /> : <LinkIcon className="w-3 h-3 flex-shrink-0" />}
                           <span className="truncate">{a.label || a.url}</span>
                         </a>
                         <button
                           onClick={() => handleDeleteAttachment(a.id)}
-                          className="text-gray-600 hover:text-red-400 transition-colors cursor-pointer p-1 hover:bg-gray-800 rounded flex-shrink-0 ml-2"
+                          className="text-gray-600 hover:text-red-400 cursor-pointer p-1 rounded flex-shrink-0 ml-2"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -1194,7 +1000,6 @@ export default function BoardDetailsClient({
                     )}
                   </div>
 
-                  {/* Upload / Link Section */}
                   <div className="space-y-3 p-3 bg-[#121212] border border-gray-800 rounded-lg">
                     {uploadError && (
                       <div className="text-[11px] text-red-400 bg-red-500/10 p-2 border border-red-500/20 rounded flex items-start gap-1.5">
@@ -1204,14 +1009,14 @@ export default function BoardDetailsClient({
                     )}
 
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">
+                      <label className="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase">
                         Unggah Berkas (Maks. 10 MB)
                       </label>
                       <input
                         type="file"
                         onChange={handleFileUpload}
                         disabled={isUploading}
-                        className="w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border file:border-gray-700 file:bg-[#202020] file:text-gray-300 hover:file:bg-[#252525] file:text-[11px] file:font-bold file:cursor-pointer cursor-pointer disabled:opacity-50"
+                        className="w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border file:border-gray-700 file:bg-[#202020] file:text-gray-300 hover:file:bg-[#252525] file:text-[11px] file:font-bold file:cursor-pointer cursor-pointer"
                       />
                       {isUploading && (
                         <span className="text-[11px] text-indigo-400 mt-1 block">Mengunggah...</span>
@@ -1221,16 +1026,16 @@ export default function BoardDetailsClient({
                     <div className="h-px bg-gray-800" />
 
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">
+                      <label className="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase">
                         Tambah Link URL
                       </label>
                       <div className="space-y-2">
                         <input
                           type="text"
-                          placeholder="Label (misal: Figma, Google Drive)"
+                          placeholder="Label (misal: Figma, Drive)"
                           value={attachmentLabel}
                           onChange={(e) => setAttachmentLabel(e.target.value)}
-                          className="w-full px-3 py-1.5 bg-[#202020] border border-gray-700 rounded text-xs text-gray-200 placeholder-gray-600"
+                          className="w-full px-3 py-1.5 bg-[#202020] border border-gray-700 rounded text-xs text-gray-200"
                         />
                         <div className="flex gap-2">
                           <input
@@ -1238,12 +1043,12 @@ export default function BoardDetailsClient({
                             placeholder="https://..."
                             value={attachmentUrl}
                             onChange={(e) => setAttachmentUrl(e.target.value)}
-                            className="flex-1 px-3 py-1.5 bg-[#202020] border border-gray-700 rounded text-xs text-gray-200 placeholder-gray-600"
+                            className="flex-1 px-3 py-1.5 bg-[#202020] border border-gray-700 rounded text-xs text-gray-200"
                           />
                           <button
                             onClick={handleAddLinkAttachment}
                             disabled={isAddingLink || !attachmentUrl.trim()}
-                            className="px-4 py-1.5 bg-[#202020] hover:bg-[#252525] border border-gray-700 text-gray-200 font-bold rounded text-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-4 py-1.5 bg-[#202020] hover:bg-[#252525] border border-gray-700 text-gray-200 font-bold rounded text-xs cursor-pointer"
                           >
                             {isAddingLink ? '...' : 'Tambah'}
                           </button>
@@ -1254,17 +1059,12 @@ export default function BoardDetailsClient({
                 </div>
               </div>
 
-              {/* Right: Task Attributes */}
+              {/* Task Attributes Sidebar */}
               <div className="space-y-4 bg-[#121212] p-4 rounded-lg border border-gray-800 self-start">
-                <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">
-                  Atribut
-                </h4>
+                <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Atribut</h4>
 
-                {/* Status Selector */}
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 mb-1">
-                    Status / Kolom
-                  </label>
+                  <label className="block text-[10px] font-bold text-gray-400 mb-1">Status / Kolom</label>
                   <select
                     value={selectedTask.status_id || ''}
                     onChange={(e) => {
@@ -1283,7 +1083,6 @@ export default function BoardDetailsClient({
                   </select>
                 </div>
 
-                {/* Assignee Selector */}
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 mb-1">Assignee</label>
                   <select
@@ -1304,7 +1103,6 @@ export default function BoardDetailsClient({
                   </select>
                 </div>
 
-                {/* Task Type Selector */}
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 mb-1">Tipe Tugas</label>
                   <select
@@ -1325,14 +1123,11 @@ export default function BoardDetailsClient({
                   </select>
                 </div>
 
-                {/* Deadline Picker */}
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 mb-1">Deadline</label>
                   <input
                     type="date"
-                    value={
-                      selectedTask.deadline ? selectedTask.deadline.split('T')[0] : ''
-                    }
+                    value={selectedTask.deadline ? selectedTask.deadline.split('T')[0] : ''}
                     onChange={(e) => {
                       const val = e.target.value || null
                       setSelectedTask({ ...selectedTask, deadline: val })
@@ -1340,18 +1135,6 @@ export default function BoardDetailsClient({
                     }}
                     className="w-full px-2.5 py-2 bg-[#202020] border border-gray-700 rounded text-xs text-gray-200"
                   />
-                </div>
-
-                {/* Created At */}
-                <div className="pt-2 border-t border-gray-800">
-                  <p className="text-[10px] text-gray-600">
-                    Dibuat:{' '}
-                    {new Date(selectedTask.created_at).toLocaleDateString('id-ID', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </p>
                 </div>
               </div>
             </div>
@@ -1362,39 +1145,14 @@ export default function BoardDetailsClient({
   )
 }
 
-// ─────────────────────────────────────────
-// Subcomponents
-// ─────────────────────────────────────────
-
-function Modal({
-  children,
-  onClose,
-  maxWidth = 'max-w-md',
-}: {
-  children: React.ReactNode
-  onClose: () => void
-  maxWidth?: string
-}) {
+function Modal({ children, onClose, maxWidth = 'max-w-md' }: { children: React.ReactNode; onClose: () => void; maxWidth?: string }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div
-        className={`relative w-full ${maxWidth} bg-[#181818] border border-gray-800 rounded-xl p-5 md:p-6`}
-      >
+      <div className={`relative w-full ${maxWidth} bg-[#181818] border border-gray-800 rounded-xl p-5 md:p-6`}>
         {children}
       </div>
     </div>
-  )
-}
-
-function CloseBtn({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="p-1 hover:bg-gray-800 rounded text-gray-400 hover:text-white transition-colors cursor-pointer"
-    >
-      <X className="w-4 h-4" />
-    </button>
   )
 }
 
@@ -1403,213 +1161,6 @@ function ErrorAlert({ message }: { message: string }) {
     <div className="mb-4 p-2.5 bg-red-500/10 border border-red-500/20 rounded text-red-400 text-xs flex items-start gap-1.5">
       <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
       {message}
-    </div>
-  )
-}
-
-function KanbanColumn({
-  id,
-  title,
-  color,
-  tasks,
-  members,
-  taskTypes,
-  localAttachments,
-  onTaskClick,
-  onMove,
-  isFirst,
-  isLast,
-  onAddTask,
-}: {
-  id: string
-  title: string
-  color: string
-  tasks: Task[]
-  members: Member[]
-  taskTypes: TaskType[]
-  localAttachments: Attachment[]
-  onTaskClick: (task: Task) => void
-  onMove: (taskId: string, dir: 'left' | 'right') => void
-  isFirst: boolean
-  isLast: boolean
-  onAddTask: () => void
-}) {
-  return (
-    <div className="w-72 flex-shrink-0 bg-[#181818] border border-gray-800 rounded-xl flex flex-col max-h-[calc(100vh-130px)] overflow-hidden">
-      {/* Column Header */}
-      <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-2 min-w-0">
-          <span
-            className="w-2 h-2 rounded-full flex-shrink-0"
-            style={{ backgroundColor: color }}
-          />
-          <h3 className="font-bold text-white text-xs truncate">{title}</h3>
-        </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          <span className="px-1.5 py-0.5 bg-[#252525] border border-gray-800 text-[10px] font-bold rounded-full text-gray-500">
-            {tasks.length}
-          </span>
-          <button
-            onClick={onAddTask}
-            className="p-1 hover:bg-gray-800 rounded text-gray-500 hover:text-white transition-colors cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-
-      {/* Tasks */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        {tasks.map((task) => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            members={members}
-            taskTypes={taskTypes}
-            attachmentsCount={localAttachments.filter((a) => a.task_id === task.id).length}
-            onClick={() => onTaskClick(task)}
-            onMove={(dir) => onMove(task.id, dir)}
-            isFirst={isFirst}
-            isLast={isLast}
-          />
-        ))}
-        {tasks.length === 0 && (
-          <div className="border border-dashed border-gray-800 rounded-lg p-5 text-center text-[11px] text-gray-600">
-            Kosong
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function TaskCard({
-  task,
-  members,
-  taskTypes,
-  attachmentsCount,
-  onClick,
-  onMove,
-  isFirst,
-  isLast,
-}: {
-  task: Task
-  members: Member[]
-  taskTypes: TaskType[]
-  attachmentsCount: number
-  onClick: () => void
-  onMove: (dir: 'left' | 'right') => void
-  isFirst: boolean
-  isLast: boolean
-}) {
-  const member = members.find((m) => m.id === task.assignee_id)
-  const taskType = taskTypes.find((t) => t.id === task.type_id)
-
-  const isOverdue =
-    task.deadline && new Date(task.deadline) < new Date() && !task.deadline.startsWith('2099')
-
-  return (
-    <div className="group relative bg-[#202020] border border-gray-800 hover:border-gray-700 rounded-lg p-3 flex flex-col gap-2.5 transition-colors">
-      {/* Type badge + Move arrows */}
-      <div className="flex items-center justify-between gap-2">
-        {taskType ? (
-          <span
-            className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider flex-shrink-0"
-            style={{
-              backgroundColor: `${taskType.color}18`,
-              color: taskType.color,
-              border: `1px solid ${taskType.color}30`,
-            }}
-          >
-            {taskType.name}
-          </span>
-        ) : (
-          <span />
-        )}
-
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-          {!isFirst && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onMove('left')
-              }}
-              className="p-1 hover:bg-gray-700 rounded text-gray-500 hover:text-white cursor-pointer"
-              title="Pindah ke kolom kiri"
-            >
-              <ChevronLeft className="w-3 h-3" />
-            </button>
-          )}
-          {!isLast && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onMove('right')
-              }}
-              className="p-1 hover:bg-gray-700 rounded text-gray-500 hover:text-white cursor-pointer"
-              title="Pindah ke kolom kanan"
-            >
-              <ChevronRight className="w-3 h-3" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Task Title */}
-      <h4
-        onClick={onClick}
-        className="text-xs font-bold text-white hover:text-indigo-400 transition-colors cursor-pointer line-clamp-2 leading-snug"
-      >
-        {task.title}
-      </h4>
-
-      {/* Description snippet */}
-      {task.description && (
-        <p className="text-[11px] text-gray-500 line-clamp-2 leading-relaxed">
-          {task.description}
-        </p>
-      )}
-
-      {/* Footer */}
-      <div className="flex items-center justify-between pt-2 border-t border-gray-800">
-        <div className="flex items-center gap-1.5">
-          {task.deadline && (
-            <span
-              className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border ${
-                isOverdue
-                  ? 'text-red-400 bg-red-500/10 border-red-500/20'
-                  : 'text-gray-500 bg-[#151515] border-gray-800'
-              }`}
-            >
-              <Clock className="w-2.5 h-2.5" />
-              {new Date(task.deadline).toLocaleDateString('id-ID', {
-                month: 'short',
-                day: 'numeric',
-              })}
-            </span>
-          )}
-          {attachmentsCount > 0 && (
-            <span className="flex items-center gap-0.5 text-[10px] text-gray-500 bg-[#151515] px-1.5 py-0.5 rounded border border-gray-800">
-              <Paperclip className="w-2.5 h-2.5" />
-              {attachmentsCount}
-            </span>
-          )}
-        </div>
-
-        {member ? (
-          <div
-            className="w-5 h-5 rounded flex items-center justify-center text-[8px] font-bold border border-gray-700 flex-shrink-0"
-            style={{ backgroundColor: `${member.color}25`, color: member.color }}
-            title={member.name}
-          >
-            {getInitials(member.name)}
-          </div>
-        ) : (
-          <div className="w-5 h-5 rounded bg-[#151515] flex items-center justify-center text-gray-600 border border-gray-800 flex-shrink-0">
-            <User className="w-3 h-3" />
-          </div>
-        )}
-      </div>
     </div>
   )
 }
